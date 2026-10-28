@@ -1,6 +1,6 @@
 # Class: `ClassMetadata`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\models.py`](../../analyzer\models.py#L20-L31) | **Lines**: `20 - 31`
+> **Language**: `PYTHON` | **Source**: [`analyzer\models.py`](../../analyzer\models.py#L56-L83) | **Lines**: `56 - 83`
 
 ---
 
@@ -17,10 +17,10 @@ classDiagram
 
 ## 2. Overview & Purpose
 
-Provides core abstraction and behaviors for `ClassMetadata`.
+Represents an object-oriented class, interface, or record extracted via AST.
 
 ### Why this class exists (Design Rationale)
-Implements inheritance/interface contract from `BaseModel` ensuring substitutability.
+Implements inheritance/interface contract from `BaseModel` ensuring substitutability and polymorphism.
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 20-31: Declares `ClassMetadata` in `analyzer\models.py`.
+- Lines 56-83: Declares `ClassMetadata` in `analyzer\models.py`.
 
 ---
 

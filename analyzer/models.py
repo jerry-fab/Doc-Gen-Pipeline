@@ -1,46 +1,109 @@
+"""
+analyzer.models
+~~~~~~~~~~~~~~~
+
+Core Pydantic data models representing the Abstract Syntax Tree (AST) metadata,
+method signatures, class relationships, and AI-grounded architectural explanations.
+
+These schemas act as the single source of truth between the deterministic parser
+and the documentation generator.
+"""
+
 from typing import List, Optional, Dict
 from pydantic import BaseModel, Field
 
+
 class ParameterMetadata(BaseModel):
-    name: str
-    type_hint: Optional[str] = "Any"
-    default_value: Optional[str] = None
+    """
+    Represents an individual method or function parameter.
+    
+    Attributes:
+        name: Name of the parameter (e.g., 'customerId').
+        type_hint: Static type annotation or inferred type (e.g., 'str', 'int', 'Order').
+        default_value: Optional default assignment if present.
+    """
+    name: str = Field(..., description="Name of the parameter variable")
+    type_hint: Optional[str] = Field("Any", description="Explicit or inferred data type")
+    default_value: Optional[str] = Field(None, description="Default parameter value if defined")
+
 
 class MethodMetadata(BaseModel):
-    name: str
-    parameters: List[ParameterMetadata] = Field(default_factory=list)
-    return_type: Optional[str] = "void"
-    start_line: int
-    end_line: int
-    docstring: Optional[str] = None
-    is_async: bool = False
-    is_static: bool = False
-    visibility: str = "public"
+    """
+    Represents a method, function, or constructor within a class declaration.
+    
+    Attributes:
+        name: Method identifier.
+        parameters: List of parsed ParameterMetadata arguments.
+        return_type: Declared or inferred return type.
+        start_line: 1-indexed source line where method begins.
+        end_line: 1-indexed source line where method ends.
+        docstring: Raw inline comments/docstrings authored by developers.
+        is_async: True if method is declared async/Task-based.
+        is_static: True if method is static or class-level.
+        visibility: Scope access level (public, private, protected).
+    """
+    name: str = Field(..., description="Method name")
+    parameters: List[ParameterMetadata] = Field(default_factory=list, description="List of arguments accepted")
+    return_type: Optional[str] = Field("void", description="Return type signature")
+    start_line: int = Field(..., description="Source code starting line")
+    end_line: int = Field(..., description="Source code ending line")
+    docstring: Optional[str] = Field(None, description="Extracted docstring or XML/Javadoc comment")
+    is_async: bool = Field(False, description="Whether the function is asynchronous")
+    is_static: bool = Field(False, description="Whether the function is a static method")
+    visibility: str = Field("public", description="Access visibility modifier")
+
 
 class ClassMetadata(BaseModel):
-    name: str
-    file_path: str
-    language: str
-    start_line: int
-    end_line: int
-    inherits: List[str] = Field(default_factory=list)
-    dependencies: List[str] = Field(default_factory=list)
-    fields: List[str] = Field(default_factory=list)
-    methods: List[MethodMetadata] = Field(default_factory=list)
-    docstring: Optional[str] = None
-    raw_code: str = ""
+    """
+    Represents an object-oriented class, interface, or record extracted via AST.
+    
+    Attributes:
+        name: Class name.
+        file_path: Relative or absolute path to the defining source file.
+        language: Programming language identifier (python, csharp, java).
+        start_line: Beginning line of class declaration.
+        end_line: Ending line of class declaration.
+        inherits: List of base classes and interfaces extended/implemented.
+        dependencies: Injected collaborators (e.g., constructor injected services).
+        fields: Private or public fields/properties declared in class body.
+        methods: List of all member methods and constructors.
+        docstring: Top-level class docstring if authored.
+        raw_code: Verbatim source code block used for LLM grounded context.
+    """
+    name: str = Field(..., description="Class identifier")
+    file_path: str = Field(..., description="Source file containing this class")
+    language: str = Field(..., description="Source programming language")
+    start_line: int = Field(..., description="Starting line in source file")
+    end_line: int = Field(..., description="Ending line in source file")
+    inherits: List[str] = Field(default_factory=list, description="Base classes or interfaces implemented")
+    dependencies: List[str] = Field(default_factory=list, description="Injected collaborators or services")
+    fields: List[str] = Field(default_factory=list, description="Field or property declarations")
+    methods: List[MethodMetadata] = Field(default_factory=list, description="Parsed member methods")
+    docstring: Optional[str] = Field(None, description="Class-level documentation string")
+    raw_code: str = Field("", description="Raw source code for LLM verification")
+
 
 class ClassExplanation(BaseModel):
-    class_name: str
-    purpose: str
-    design_rationale: str
-    responsibilities: List[str] = Field(default_factory=list)
-    dependencies_explained: Dict[str, str] = Field(default_factory=dict)
-    key_methods_explained: Dict[str, str] = Field(default_factory=dict)
-    evidence_citations: List[str] = Field(default_factory=list)
-    potential_limitations: List[str] = Field(default_factory=list)
+    """
+    Structured architectural explanation generated by the AI Engine or Grounded Fallback.
+    
+    Strictly separates observable code behavior from inferred architectural rationale
+    to eliminate hallucinations.
+    """
+    class_name: str = Field(..., description="Target class identifier")
+    purpose: str = Field(..., description="Concise explanation of the class's functional purpose")
+    design_rationale: str = Field(..., description="Why this class exists in the architecture")
+    responsibilities: List[str] = Field(default_factory=list, description="Key operational duties")
+    dependencies_explained: Dict[str, str] = Field(default_factory=dict, description="Roles of injected collaborators")
+    key_methods_explained: Dict[str, str] = Field(default_factory=dict, description="Explanations of primary operations")
+    evidence_citations: List[str] = Field(default_factory=list, description="Verifiable line number references")
+    potential_limitations: List[str] = Field(default_factory=list, description="Architectural boundaries & unknowns")
+
 
 class FileAnalysisResult(BaseModel):
-    file_path: str
-    language: str
-    classes: List[ClassMetadata] = Field(default_factory=list)
+    """
+    Encapsulates all classes discovered within a single source file.
+    """
+    file_path: str = Field(..., description="Path to the analyzed file")
+    language: str = Field(..., description="Programming language detected")
+    classes: List[ClassMetadata] = Field(default_factory=list, description="All parsed classes in this file")

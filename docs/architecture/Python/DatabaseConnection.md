@@ -1,6 +1,6 @@
 # Class: `DatabaseConnection`
 
-> **Language**: `PYTHON` | **Source**: [`sample_project\order_manager.py`](../../sample_project\order_manager.py#L3-L6) | **Lines**: `3 - 6`
+> **Language**: `PYTHON` | **Source**: [`sample_project\order_manager.py`](../../sample_project\order_manager.py#L15-L28) | **Lines**: `15 - 28`
 
 ---
 
@@ -17,10 +17,10 @@ classDiagram
 
 ## 2. Overview & Purpose
 
-Handles low-level database pooling.
+Manages low-level database pooling, transactions, and session lifecycle.
 
 ### Why this class exists (Design Rationale)
-Encapsulates specialized methods and state within a dedicated class unit.
+Encapsulates specialized methods and state within a dedicated class unit adhering to single responsibility principles.
 
 ---
 
@@ -34,14 +34,17 @@ Encapsulates specialized methods and state within a dedicated class unit.
 
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
-| **`connect`** | `self: Any` | `bool` | L5-L6 | Executes `connect` accepting 1 parameter(s) and returning `bool`. |
+| **`connect`** | `self: Any` | `bool` | L20-L28 | Establishes an active pooled database connection.
+        
+        Returns:
+            bool: True if connection handshake succeeded, False otherwise. |
 
 ---
 
 ## 6. Verifiable Code Citations
 
-- Lines 3-6: Declares `DatabaseConnection` in `sample_project\order_manager.py`.
-- Lines 5-6: Defines method `connect`.
+- Lines 15-28: Declares `DatabaseConnection` in `sample_project\order_manager.py`.
+- Lines 20-28: Defines method `connect`.
 
 ---
 

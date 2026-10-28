@@ -1,6 +1,6 @@
 # Class: `ParameterMetadata`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\models.py`](../../analyzer\models.py#L4-L7) | **Lines**: `4 - 7`
+> **Language**: `PYTHON` | **Source**: [`analyzer\models.py`](../../analyzer\models.py#L16-L27) | **Lines**: `16 - 27`
 
 ---
 
@@ -17,10 +17,10 @@ classDiagram
 
 ## 2. Overview & Purpose
 
-Provides core abstraction and behaviors for `ParameterMetadata`.
+Represents an individual method or function parameter.
 
 ### Why this class exists (Design Rationale)
-Implements inheritance/interface contract from `BaseModel` ensuring substitutability.
+Implements inheritance/interface contract from `BaseModel` ensuring substitutability and polymorphism.
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 4-7: Declares `ParameterMetadata` in `analyzer\models.py`.
+- Lines 16-27: Declares `ParameterMetadata` in `analyzer\models.py`.
 
 ---
 

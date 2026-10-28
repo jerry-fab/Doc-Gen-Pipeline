@@ -1,6 +1,6 @@
 # Class: `UniversalASTParser`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\parser.py`](../../analyzer\parser.py#L10-L326) | **Lines**: `10 - 326`
+> **Language**: `PYTHON` | **Source**: [`analyzer\parser.py`](../../analyzer\parser.py#L28-L392) | **Lines**: `28 - 392`
 
 ---
 
@@ -26,16 +26,16 @@ classDiagram
 
 ## 2. Overview & Purpose
 
-Provides core abstraction and behaviors for `UniversalASTParser`.
+Orchestrates grammar loading and syntax tree traversal across multiple languages.
 
 ### Why this class exists (Design Rationale)
-Encapsulates specialized methods and state within a dedicated class unit.
+Encapsulates specialized methods and state within a dedicated class unit adhering to single responsibility principles.
 
 ---
 
 ## 3. Key Responsibilities
 
-- Initializes dependencies: None.
+- Initializes instance dependencies: None.
 - Provides operation `detect_language`.
 - Provides operation `parse_file`.
 - Provides operation `_get_node_text`.
@@ -52,32 +52,44 @@ Encapsulates specialized methods and state within a dedicated class unit.
 
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
-| **`__init__`** | `self: Any` | `Any` | L11-L35 | Executes method logic. |
-| **`detect_language`** | `self: Any`, `file_path: str` | `Optional[str]` | L37-L44 | Executes `detect_language` accepting 2 parameter(s) and returning `Optional[str]`. |
-| **`parse_file`** | `self: Any`, `file_path: str` | `Optional[FileAnalysisResult]` | L46-L74 | Executes `parse_file` accepting 2 parameter(s) and returning `Optional[FileAnalysisResult]`. |
-| **`_get_node_text`** | `self: Any`, `node: Optional[Node]`, `source_bytes: bytes` | `str` | L76-L79 | Executes `_get_node_text` accepting 3 parameter(s) and returning `str`. |
-| **`_extract_python_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L82-L134 | Executes `_extract_python_classes` accepting 4 parameter(s) and returning `List[ClassMetadata]`. |
-| **`_extract_python_method`** | `self: Any`, `node: Node`, `source_bytes: bytes` | `MethodMetadata` | L136-L172 | Executes `_extract_python_method` accepting 3 parameter(s) and returning `MethodMetadata`. |
-| **`_extract_csharp_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L175-L225 | Executes `_extract_csharp_classes` accepting 4 parameter(s) and returning `List[ClassMetadata]`. |
-| **`_extract_csharp_method`** | `self: Any`, `node: Node`, `source_bytes: bytes` | `MethodMetadata` | L227-L251 | Executes `_extract_csharp_method` accepting 3 parameter(s) and returning `MethodMetadata`. |
-| **`_extract_java_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L254-L300 | Executes `_extract_java_classes` accepting 4 parameter(s) and returning `List[ClassMetadata]`. |
-| **`_extract_java_method`** | `self: Any`, `node: Node`, `source_bytes: bytes` | `MethodMetadata` | L302-L326 | Executes `_extract_java_method` accepting 3 parameter(s) and returning `MethodMetadata`. |
+| **`__init__`** | `self: Any` | `Any` | L33-L59 | Initializes language grammars and parser instances for supported languages. |
+| **`detect_language`** | `self: Any`, `file_path: str` | `Optional[str]` | L61-L77 | Maps a file extension to its corresponding parser language key.
+        
+        Args:
+            file_path: Relative or absolute path to the file.
+            
+        Returns:
+            Language string ('python', 'csharp', 'java') or None if unsupported. |
+| **`parse_file`** | `self: Any`, `file_path: str` | `Optional[FileAnalysisResult]` | L79-L117 | Reads a source file, parses its AST, and extracts structured class metadata.
+        
+        Args:
+            file_path: Path to the target source file.
+            
+        Returns:
+            FileAnalysisResult containing discovered classes, or None if unparseable. |
+| **`_get_node_text`** | `self: Any`, `node: Optional[Node]`, `source_bytes: bytes` | `str` | L119-L123 | Helper to extract and decode substring bounded by a Tree-sitter node. |
+| **`_extract_python_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L128-L185 | Traverses Python AST to extract classes, bases, dependencies, and methods. |
+| **`_extract_python_method`** | `self: Any`, `node: Node`, `source_bytes: bytes` | `MethodMetadata` | L187-L226 | Parses a Python function_definition node into structured MethodMetadata. |
+| **`_extract_csharp_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L231-L284 | Traverses C# AST extracting classes, interfaces, base_list, and DI constructors. |
+| **`_extract_csharp_method`** | `self: Any`, `node: Node`, `source_bytes: bytes` | `MethodMetadata` | L286-L311 | Parses a C# method_declaration node into MethodMetadata. |
+| **`_extract_java_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L316-L365 | Traverses Java AST extracting classes, interfaces, superclasses, and methods. |
+| **`_extract_java_method`** | `self: Any`, `node: Node`, `source_bytes: bytes` | `MethodMetadata` | L367-L392 | Parses a Java method_declaration node into MethodMetadata. |
 
 ---
 
 ## 6. Verifiable Code Citations
 
-- Lines 10-326: Declares `UniversalASTParser` in `analyzer\parser.py`.
-- Lines 11-35: Constructor initialization.
-- Lines 37-44: Defines method `detect_language`.
-- Lines 46-74: Defines method `parse_file`.
-- Lines 76-79: Defines method `_get_node_text`.
-- Lines 82-134: Defines method `_extract_python_classes`.
-- Lines 136-172: Defines method `_extract_python_method`.
-- Lines 175-225: Defines method `_extract_csharp_classes`.
-- Lines 227-251: Defines method `_extract_csharp_method`.
-- Lines 254-300: Defines method `_extract_java_classes`.
-- Lines 302-326: Defines method `_extract_java_method`.
+- Lines 28-392: Declares `UniversalASTParser` in `analyzer\parser.py`.
+- Lines 33-59: Constructor initialization.
+- Lines 61-77: Defines method `detect_language`.
+- Lines 79-117: Defines method `parse_file`.
+- Lines 119-123: Defines method `_get_node_text`.
+- Lines 128-185: Defines method `_extract_python_classes`.
+- Lines 187-226: Defines method `_extract_python_method`.
+- Lines 231-284: Defines method `_extract_csharp_classes`.
+- Lines 286-311: Defines method `_extract_csharp_method`.
+- Lines 316-365: Defines method `_extract_java_classes`.
+- Lines 367-392: Defines method `_extract_java_method`.
 
 ---
 

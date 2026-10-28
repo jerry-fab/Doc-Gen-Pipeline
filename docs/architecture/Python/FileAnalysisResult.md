@@ -1,6 +1,6 @@
 # Class: `FileAnalysisResult`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\models.py`](../../analyzer\models.py#L43-L46) | **Lines**: `43 - 46`
+> **Language**: `PYTHON` | **Source**: [`analyzer\models.py`](../../analyzer\models.py#L103-L109) | **Lines**: `103 - 109`
 
 ---
 
@@ -17,10 +17,10 @@ classDiagram
 
 ## 2. Overview & Purpose
 
-Provides core abstraction and behaviors for `FileAnalysisResult`.
+Encapsulates all classes discovered within a single source file.
 
 ### Why this class exists (Design Rationale)
-Implements inheritance/interface contract from `BaseModel` ensuring substitutability.
+Implements inheritance/interface contract from `BaseModel` ensuring substitutability and polymorphism.
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 43-46: Declares `FileAnalysisResult` in `analyzer\models.py`.
+- Lines 103-109: Declares `FileAnalysisResult` in `analyzer\models.py`.
 
 ---
 

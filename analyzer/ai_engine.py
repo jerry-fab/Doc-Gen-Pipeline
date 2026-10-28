@@ -1,3 +1,20 @@
+"""
+analyzer.ai_engine
+~~~~~~~~~~~~~~~~~~
+
+Grounded AI Explanation Engine for Code Architecture.
+
+Responsibilities:
+    1. Interprets AST structures and source code to explain class purpose and architectural rationale.
+    2. Implements strict anti-hallucination guardrails (only describes directly observable facts).
+    3. Provides a 100% offline, deterministic heuristic fallback when no external LLM API key is present.
+
+Design Philosophy:
+    LLMs frequently hallucinate missing business rules (e.g. inventing database writes or validation
+    logic that isn't in the file). This engine enforces evidence citations (line numbers) and
+    explicitly mandates unknown boundary identification.
+"""
+
 import os
 import json
 from typing import Optional
@@ -6,29 +23,51 @@ from dotenv import load_dotenv
 
 from analyzer.models import ClassMetadata, ClassExplanation
 
+# Load environment configuration from .env if present
 load_dotenv()
 
+
 class AIDocumentationEngine:
+    """
+    Coordinates semantic analysis and documentation synthesis using hosted LLMs or local fallbacks.
+    """
+
     def __init__(self):
+        """
+        Initializes API credentials and endpoints from environment variables.
+        Supports OpenAI, Google Gemini, OpenRouter, Groq, or local Ollama instances.
+        """
         self.api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY") or os.getenv("GEMINI_API_KEY")
         self.api_base = os.getenv("LLM_API_BASE", "https://api.openai.com/v1")
         self.model = os.getenv("LLM_MODEL", "gpt-4o-mini")
 
     def explain_class(self, metadata: ClassMetadata) -> ClassExplanation:
         """
-        Explains class purpose and rationale.
-        Uses LLM if API key is present; otherwise falls back to a deterministic heuristic engine.
+        Generates an architectural explanation for a given class.
+        
+        Strategy:
+            - If LLM_API_KEY is configured: Invokes LLM with strict grounding prompt.
+            - If LLM call fails or no API key is set: Falls back to deterministic heuristic explainer.
+        
+        Args:
+            metadata: Parsed ClassMetadata from UniversalASTParser.
+            
+        Returns:
+            ClassExplanation object populated with verifiable facts.
         """
         if self.api_key:
             try:
                 return self._call_llm(metadata)
-            except Exception as e:
-                print(f"[Warning] LLM call failed ({e}). Falling back to grounded heuristic explainer.")
+            except Exception as exc:
+                print(f"[Warning] LLM API call failed ({exc}). Falling back to grounded heuristic explainer.")
                 return self._grounded_heuristic_explainer(metadata)
         else:
             return self._grounded_heuristic_explainer(metadata)
 
     def _call_llm(self, metadata: ClassMetadata) -> ClassExplanation:
+        """
+        Executes an HTTP request to an OpenAI-compatible REST endpoint with strict guardrails.
+        """
         prompt = f"""
 You are a Senior Software Architect and technical documentation specialist.
 Analyze this {metadata.language.upper()} class: `{metadata.name}` from file `{metadata.file_path}` (Lines {metadata.start_line}-{metadata.end_line}).
@@ -44,13 +83,13 @@ SOURCE CODE:
 {metadata.raw_code}
 ```
 
-STRICT RULES:
+STRICT ARCHITECTURAL RULES:
 1. ONLY describe what is directly observable in the code.
 2. Clearly separate observed functionality from INFERRED design rationale.
-3. If database persistence, external network calls, or validation are not explicitly defined, DO NOT invent them. Explicitly mention that further cross-file investigation is required.
+3. If database persistence, external network calls, or validation are not explicitly defined, DO NOT invent them. Explicitly state that cross-file inspection is required.
 4. Provide exact line number citations.
 
-Respond with strict JSON adhering to this format:
+Respond with strict JSON adhering to this schema:
 {{
   "class_name": "{metadata.name}",
   "purpose": "A concise explanation of what this class does.",
@@ -69,55 +108,76 @@ Respond with strict JSON adhering to this format:
         payload = {
             "model": self.model,
             "messages": [
-                {"role": "system", "content": "You are a senior software architect who produces grounded, hallucination-free code documentation in JSON."},
+                {
+                    "role": "system",
+                    "content": "You are a senior software architect who produces grounded, hallucination-free code documentation in JSON."
+                },
                 {"role": "user", "content": prompt}
             ],
-            "temperature": 0.1,
+            "temperature": 0.1,  # Low temperature ensures deterministic, objective output
             "response_format": {"type": "json_object"} if "gpt" in self.model else None
         }
 
-        resp = requests.post(f"{self.api_base}/chat/completions", headers=headers, json=payload, timeout=30)
-        resp.raise_for_status()
-        content = resp.json()["choices"][0]["message"]["content"]
+        response = requests.post(
+            f"{self.api_base}/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+        response.raise_for_status()
+        content = response.json()["choices"][0]["message"]["content"]
         data = json.loads(content)
         return ClassExplanation(**data)
 
     def _grounded_heuristic_explainer(self, metadata: ClassMetadata) -> ClassExplanation:
         """
-        Grounded deterministic fallback that extracts verifiable facts and observed patterns.
-        Guarantees 100% offline availability with zero cost and zero hallucination.
+        Deterministic, rule-based fallback generator.
+        
+        Guarantees that the pipeline operates 100% offline with zero cost, no token limits,
+        and absolute fidelity to the source code without hallucinations.
         """
-        # Determine purpose based on docstring or naming conventions
+        # 1. Functional Purpose Inference
         doc = metadata.docstring.strip() if metadata.docstring else ""
         if doc:
             purpose = doc.split("\n")[0]
         elif metadata.name.endswith("Service"):
             purpose = f"Encapsulates domain business logic and coordination for {metadata.name[:-7].lower()} workflows."
         elif metadata.name.endswith("Processor"):
-            purpose = f"Processes transactions and tasks related to {metadata.name[:-9].lower()} operations."
+            purpose = f"Processes transactions and lifecycle tasks related to {metadata.name[:-9].lower()} operations."
         elif metadata.name.endswith("Connection"):
-            purpose = f"Manages connectivity and resource handling for low-level interactions."
+            purpose = f"Manages connectivity and resource handling for low-level system interactions."
+        elif metadata.name.startswith("I") and metadata.name[1:2].isupper():
+            purpose = f"Defines an interface contract for {metadata.name[1:].lower()} capabilities."
         else:
-            purpose = f"Provides core abstraction and behaviors for `{metadata.name}`."
+            purpose = f"Provides core abstraction and member behaviors for `{metadata.name}`."
 
-        # Inferred Design Rationale
+        # 2. Design Rationale Inference
         rationale_parts = []
         if metadata.inherits:
-            rationale_parts.append(f"Implements inheritance/interface contract from `{', '.join(metadata.inherits)}` ensuring substitutability.")
+            rationale_parts.append(
+                f"Implements inheritance/interface contract from `{', '.join(metadata.inherits)}` ensuring substitutability and polymorphism."
+            )
         if metadata.dependencies:
-            rationale_parts.append("Employs Dependency Injection via constructor parameters to decouple implementations from caller code.")
+            rationale_parts.append(
+                "Employs Dependency Injection via constructor parameters to decouple implementations from caller code."
+            )
         if not rationale_parts:
-            rationale_parts.append("Encapsulates specialized methods and state within a dedicated class unit.")
+            rationale_parts.append(
+                "Encapsulates specialized methods and state within a dedicated class unit adhering to single responsibility principles."
+            )
         design_rationale = " ".join(rationale_parts)
 
-        # Responsibilities & Citations
+        # 3. Responsibilities & Line Citations
         responsibilities = []
         key_methods = {}
-        citations = [f"Lines {metadata.start_line}-{metadata.end_line}: Declares `{metadata.name}` in `{metadata.file_path}`."]
+        citations = [
+            f"Lines {metadata.start_line}-{metadata.end_line}: Declares `{metadata.name}` in `{metadata.file_path}`."
+        ]
 
         for m in metadata.methods:
             if m.name in ("__init__", metadata.name):
-                responsibilities.append(f"Initializes dependencies: {', '.join(p.name for p in m.parameters if p.name not in ('self', 'cls')) or 'None'}.")
+                params_desc = ", ".join(p.name for p in m.parameters if p.name not in ("self", "cls")) or "None"
+                responsibilities.append(f"Initializes instance dependencies: {params_desc}.")
                 citations.append(f"Lines {m.start_line}-{m.end_line}: Constructor initialization.")
             else:
                 desc = m.docstring or f"Executes `{m.name}` accepting {len(m.parameters)} parameter(s) and returning `{m.return_type}`."
@@ -125,11 +185,12 @@ Respond with strict JSON adhering to this format:
                 responsibilities.append(f"Provides operation `{m.name}`.")
                 citations.append(f"Lines {m.start_line}-{m.end_line}: Defines method `{m.name}`.")
 
-        # Dependencies
+        # 4. Dependency Roles
         deps_explained = {}
         for d in metadata.dependencies:
-            deps_explained[d] = "Injected dependency used for delegating operations."
+            deps_explained[d] = "Injected collaborator utilized for delegating specialized operations."
 
+        # 5. Known Boundaries & Limitations
         limitations = [
             f"End-to-end integration requires inspecting classes calling or referenced by `{metadata.name}`.",
             "Underlying data persistence and network latency characteristics depend on external runtime configuration."

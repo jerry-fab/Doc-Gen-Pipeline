@@ -1,6 +1,6 @@
 # Class: `AIDocumentationEngine`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\ai_engine.py`](../../analyzer\ai_engine.py#L11-L147) | **Lines**: `11 - 147`
+> **Language**: `PYTHON` | **Source**: [`analyzer\ai_engine.py`](../../analyzer\ai_engine.py#L30-L208) | **Lines**: `30 - 208`
 
 ---
 
@@ -20,16 +20,16 @@ classDiagram
 
 ## 2. Overview & Purpose
 
-Provides core abstraction and behaviors for `AIDocumentationEngine`.
+Coordinates semantic analysis and documentation synthesis using hosted LLMs or local fallbacks.
 
 ### Why this class exists (Design Rationale)
-Encapsulates specialized methods and state within a dedicated class unit.
+Encapsulates specialized methods and state within a dedicated class unit adhering to single responsibility principles.
 
 ---
 
 ## 3. Key Responsibilities
 
-- Initializes dependencies: None.
+- Initializes instance dependencies: None.
 - Provides operation `explain_class`.
 - Provides operation `_call_llm`.
 - Provides operation `_grounded_heuristic_explainer`.
@@ -40,22 +40,34 @@ Encapsulates specialized methods and state within a dedicated class unit.
 
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
-| **`__init__`** | `self: Any` | `Any` | L12-L15 | Executes method logic. |
-| **`explain_class`** | `self: Any`, `metadata: ClassMetadata` | `ClassExplanation` | L17-L29 | Explains class purpose and rationale.
-        Uses LLM if API key is present; otherwise falls back to a deterministic heuristic engine. |
-| **`_call_llm`** | `self: Any`, `metadata: ClassMetadata` | `ClassExplanation` | L31-L83 | Executes `_call_llm` accepting 2 parameter(s) and returning `ClassExplanation`. |
-| **`_grounded_heuristic_explainer`** | `self: Any`, `metadata: ClassMetadata` | `ClassExplanation` | L85-L147 | Grounded deterministic fallback that extracts verifiable facts and observed patterns.
-        Guarantees 100% offline availability with zero cost and zero hallucination. |
+| **`__init__`** | `self: Any` | `Any` | L35-L42 | Initializes API credentials and endpoints from environment variables.
+        Supports OpenAI, Google Gemini, OpenRouter, Groq, or local Ollama instances. |
+| **`explain_class`** | `self: Any`, `metadata: ClassMetadata` | `ClassExplanation` | L44-L65 | Generates an architectural explanation for a given class.
+        
+        Strategy:
+            - If LLM_API_KEY is configured: Invokes LLM with strict grounding prompt.
+            - If LLM call fails or no API key is set: Falls back to deterministic heuristic explainer.
+        
+        Args:
+            metadata: Parsed ClassMetadata from UniversalASTParser.
+            
+        Returns:
+            ClassExplanation object populated with verifiable facts. |
+| **`_call_llm`** | `self: Any`, `metadata: ClassMetadata` | `ClassExplanation` | L67-L130 | Executes an HTTP request to an OpenAI-compatible REST endpoint with strict guardrails. |
+| **`_grounded_heuristic_explainer`** | `self: Any`, `metadata: ClassMetadata` | `ClassExplanation` | L132-L208 | Deterministic, rule-based fallback generator.
+        
+        Guarantees that the pipeline operates 100% offline with zero cost, no token limits,
+        and absolute fidelity to the source code without hallucinations. |
 
 ---
 
 ## 6. Verifiable Code Citations
 
-- Lines 11-147: Declares `AIDocumentationEngine` in `analyzer\ai_engine.py`.
-- Lines 12-15: Constructor initialization.
-- Lines 17-29: Defines method `explain_class`.
-- Lines 31-83: Defines method `_call_llm`.
-- Lines 85-147: Defines method `_grounded_heuristic_explainer`.
+- Lines 30-208: Declares `AIDocumentationEngine` in `analyzer\ai_engine.py`.
+- Lines 35-42: Constructor initialization.
+- Lines 44-65: Defines method `explain_class`.
+- Lines 67-130: Defines method `_call_llm`.
+- Lines 132-208: Defines method `_grounded_heuristic_explainer`.
 
 ---
 

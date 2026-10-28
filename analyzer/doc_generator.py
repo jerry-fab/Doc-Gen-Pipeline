@@ -1,20 +1,57 @@
+"""
+analyzer.doc_generator
+~~~~~~~~~~~~~~~~~~~~~~
+
+Markdown and Mermaid.js documentation generator.
+
+Responsibilities:
+    1. Formats structured ClassMetadata and ClassExplanation into GitHub-flavored Markdown.
+    2. Builds interactive Mermaid.js class diagrams visualizing relationships and dependencies.
+    3. Organizes documentation into language-specific folders (e.g. docs/architecture/Csharp/).
+    4. Auto-maintains the root docs/README.md catalog index.
+"""
+
 import os
 from typing import List, Dict
 from analyzer.models import ClassMetadata, ClassExplanation
 
+
 class DocumentationGenerator:
+    """
+    Renders structured metadata into publication-ready Markdown documents with Mermaid diagrams.
+    """
+
     def __init__(self, output_dir: str = "docs"):
+        """
+        Initializes the documentation builder.
+        
+        Args:
+            output_dir: Base directory where docs will be written (default: 'docs').
+        """
         self.output_dir = output_dir
         self.arch_dir = os.path.join(output_dir, "architecture")
         os.makedirs(self.arch_dir, exist_ok=True)
 
     def generate_class_doc(self, meta: ClassMetadata, explanation: ClassExplanation) -> str:
+        """
+        Writes a Markdown documentation file for an individual class.
+        
+        Args:
+            meta: Raw parsed AST metadata.
+            explanation: Architectural explanation from AI or Heuristic engine.
+            
+        Returns:
+            Absolute or relative file path to the generated Markdown file.
+        """
+        # Create language sub-directory (e.g., docs/architecture/Python/)
         lang_dir = os.path.join(self.arch_dir, meta.language.capitalize())
         os.makedirs(lang_dir, exist_ok=True)
         file_path = os.path.join(lang_dir, f"{meta.name}.md")
 
+        # Build visual Mermaid diagram
         mermaid = self._build_mermaid_diagram(meta)
 
+        # Assemble GitHub Markdown document
         md = f"""# Class: `{meta.name}`
 
 > **Language**: `{meta.language.upper()}` | **Source**: [`{meta.file_path}`](../../{meta.file_path}#L{meta.start_line}-L{meta.end_line}) | **Lines**: `{meta.start_line} - {meta.end_line}`
@@ -73,25 +110,30 @@ class DocumentationGenerator:
         return file_path
 
     def _build_mermaid_diagram(self, meta: ClassMetadata) -> str:
+        """
+        Constructs a Mermaid classDiagram string depicting methods, fields, and inheritance.
+        """
         lines = ["classDiagram"]
-        # Class definition
         lines.append(f"    class {meta.name} {{")
+        
+        # Display up to 5 properties/fields
         for f in meta.fields[:5]:
             clean_f = f.replace(";", "").replace("private", "-").replace("public", "+").replace("protected", "#")
             lines.append(f"        {clean_f}")
+            
+        # Display method signatures
         for m in meta.methods:
-            p_list = ", ".join(f"{p.type_hint} {p.name}" for p in m.parameters if p.name not in ('self', 'cls'))
+            p_list = ", ".join(f"{p.type_hint} {p.name}" for p in m.parameters if p.name not in ("self", "cls"))
             lines.append(f"        +{m.name}({p_list}) {m.return_type}")
         lines.append("    }")
 
-        # Inheritance
+        # Render Inheritance Arrows (<|--)
         for base in meta.inherits:
             clean_base = base.replace("<", "~").replace(">", "~")
             lines.append(f"    {clean_base} <|-- {meta.name} : inherits")
 
-        # Dependencies
+        # Render Injected Dependency Arrows (..>)
         for dep in meta.dependencies:
-            # extract type name if available
             dep_type = dep.split(":")[1].strip() if ":" in dep else dep.split()[0].strip()
             if dep_type and dep_type not in ("int", "str", "string", "bool", "double", "float"):
                 clean_dep = dep_type.replace("<", "~").replace(">", "~")
@@ -100,6 +142,12 @@ class DocumentationGenerator:
         return "\n".join(lines)
 
     def update_index(self, catalog: Dict[str, List[str]]):
+        """
+        Updates the root docs/README.md file with an alphabetized index of all generated documentation.
+        
+        Args:
+            catalog: Dictionary mapping Language name to list of generated Markdown file paths.
+        """
         index_path = os.path.join(self.output_dir, "README.md")
         md = """# Automated Code Architecture & Class Catalog
 

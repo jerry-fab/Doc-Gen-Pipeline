@@ -1,6 +1,6 @@
 # Class: `IPaymentGateway`
 
-> **Language**: `CSHARP` | **Source**: [`sample_project\OrderService.cs`](../../sample_project\OrderService.cs#L6-L9) | **Lines**: `6 - 9`
+> **Language**: `CSHARP` | **Source**: [`sample_project\OrderService.cs`](../../sample_project\OrderService.cs#L9-L18) | **Lines**: `9 - 18`
 
 ---
 
@@ -17,10 +17,10 @@ classDiagram
 
 ## 2. Overview & Purpose
 
-Provides core abstraction and behaviors for `IPaymentGateway`.
+Defines an interface contract for paymentgateway capabilities.
 
 ### Why this class exists (Design Rationale)
-Encapsulates specialized methods and state within a dedicated class unit.
+Encapsulates specialized methods and state within a dedicated class unit adhering to single responsibility principles.
 
 ---
 
@@ -34,14 +34,14 @@ Encapsulates specialized methods and state within a dedicated class unit.
 
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
-| **`ChargeAsync`** | `customerId: string`, `amount: decimal` | `void` | L8-L8 | Executes `ChargeAsync` accepting 2 parameter(s) and returning `void`. |
+| **`ChargeAsync`** | `customerId: string`, `amount: decimal` | `void` | L17-L17 | Executes `ChargeAsync` accepting 2 parameter(s) and returning `void`. |
 
 ---
 
 ## 6. Verifiable Code Citations
 
-- Lines 6-9: Declares `IPaymentGateway` in `sample_project\OrderService.cs`.
-- Lines 8-8: Defines method `ChargeAsync`.
+- Lines 9-18: Declares `IPaymentGateway` in `sample_project\OrderService.cs`.
+- Lines 17-17: Defines method `ChargeAsync`.
 
 ---
 

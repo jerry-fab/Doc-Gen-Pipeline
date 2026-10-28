@@ -1,6 +1,6 @@
 # Class: `OrderService`
 
-> **Language**: `CSHARP` | **Source**: [`sample_project\OrderService.cs`](../../sample_project\OrderService.cs#L11-L32) | **Lines**: `11 - 32`
+> **Language**: `CSHARP` | **Source**: [`sample_project\OrderService.cs`](../../sample_project\OrderService.cs#L24-L61) | **Lines**: `24 - 61`
 
 ---
 
@@ -25,7 +25,7 @@ classDiagram
 Encapsulates domain business logic and coordination for order workflows.
 
 ### Why this class exists (Design Rationale)
-Implements inheritance/interface contract from `IPaymentGateway` ensuring substitutability. Employs Dependency Injection via constructor parameters to decouple implementations from caller code.
+Implements inheritance/interface contract from `IPaymentGateway` ensuring substitutability and polymorphism. Employs Dependency Injection via constructor parameters to decouple implementations from caller code.
 
 ---
 
@@ -40,23 +40,23 @@ Implements inheritance/interface contract from `IPaymentGateway` ensuring substi
 
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
-| **`ChargeAsync`** | `customerId: string`, `amount: decimal` | `void` | L22-L26 | Executes `ChargeAsync` accepting 2 parameter(s) and returning `void`. |
-| **`GetOrderStatus`** | `orderId: string` | `void` | L28-L31 | Executes `GetOrderStatus` accepting 1 parameter(s) and returning `void`. |
+| **`ChargeAsync`** | `customerId: string`, `amount: decimal` | `void` | L46-L50 | Executes `ChargeAsync` accepting 2 parameter(s) and returning `void`. |
+| **`GetOrderStatus`** | `orderId: string` | `void` | L57-L60 | Executes `GetOrderStatus` accepting 1 parameter(s) and returning `void`. |
 
 ---
 
 ## 5. Injected Dependencies & Collaborators
 
-- **`IPaymentGateway gateway`**: Injected dependency used for delegating operations.
-- **`string merchantId`**: Injected dependency used for delegating operations.
+- **`IPaymentGateway gateway`**: Injected collaborator utilized for delegating specialized operations.
+- **`string merchantId`**: Injected collaborator utilized for delegating specialized operations.
 
 ---
 
 ## 6. Verifiable Code Citations
 
-- Lines 11-32: Declares `OrderService` in `sample_project\OrderService.cs`.
-- Lines 22-26: Defines method `ChargeAsync`.
-- Lines 28-31: Defines method `GetOrderStatus`.
+- Lines 24-61: Declares `OrderService` in `sample_project\OrderService.cs`.
+- Lines 46-50: Defines method `ChargeAsync`.
+- Lines 57-60: Defines method `GetOrderStatus`.
 
 ---
 

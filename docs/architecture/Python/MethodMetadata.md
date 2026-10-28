@@ -1,6 +1,6 @@
 # Class: `MethodMetadata`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\models.py`](../../analyzer\models.py#L9-L18) | **Lines**: `9 - 18`
+> **Language**: `PYTHON` | **Source**: [`analyzer\models.py`](../../analyzer\models.py#L30-L53) | **Lines**: `30 - 53`
 
 ---
 
@@ -17,10 +17,10 @@ classDiagram
 
 ## 2. Overview & Purpose
 
-Provides core abstraction and behaviors for `MethodMetadata`.
+Represents a method, function, or constructor within a class declaration.
 
 ### Why this class exists (Design Rationale)
-Implements inheritance/interface contract from `BaseModel` ensuring substitutability.
+Implements inheritance/interface contract from `BaseModel` ensuring substitutability and polymorphism.
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 9-18: Declares `MethodMetadata` in `analyzer\models.py`.
+- Lines 30-53: Declares `MethodMetadata` in `analyzer\models.py`.
 
 ---
 

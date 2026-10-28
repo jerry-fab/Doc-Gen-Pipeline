@@ -1,6 +1,6 @@
 # Class: `PaymentProcessor`
 
-> **Language**: `JAVA` | **Source**: [`sample_project\PaymentProcessor.java`](../../sample_project\PaymentProcessor.java#L5-L21) | **Lines**: `5 - 21`
+> **Language**: `JAVA` | **Source**: [`sample_project\PaymentProcessor.java`](../../sample_project\PaymentProcessor.java#L12-L47) | **Lines**: `12 - 47`
 
 ---
 
@@ -19,7 +19,7 @@ classDiagram
 
 ## 2. Overview & Purpose
 
-Processes transactions and tasks related to payment operations.
+Processes transactions and lifecycle tasks related to payment operations.
 
 ### Why this class exists (Design Rationale)
 Employs Dependency Injection via constructor parameters to decouple implementations from caller code.
@@ -37,23 +37,23 @@ Employs Dependency Injection via constructor parameters to decouple implementati
 
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
-| **`executeTransaction`** | `accountId: String`, `amount: double` | `boolean` | L14-L16 | Executes `executeTransaction` accepting 2 parameter(s) and returning `boolean`. |
-| **`fetchTransactionHistory`** | `accountId: String` | `List<String>` | L18-L20 | Executes `fetchTransactionHistory` accepting 1 parameter(s) and returning `List<String>`. |
+| **`executeTransaction`** | `accountId: String`, `amount: double` | `boolean` | L34-L36 | Executes `executeTransaction` accepting 2 parameter(s) and returning `boolean`. |
+| **`fetchTransactionHistory`** | `accountId: String` | `List<String>` | L44-L46 | Executes `fetchTransactionHistory` accepting 1 parameter(s) and returning `List<String>`. |
 
 ---
 
 ## 5. Injected Dependencies & Collaborators
 
-- **`String apiKey`**: Injected dependency used for delegating operations.
-- **`int timeoutSeconds`**: Injected dependency used for delegating operations.
+- **`String apiKey`**: Injected collaborator utilized for delegating specialized operations.
+- **`int timeoutSeconds`**: Injected collaborator utilized for delegating specialized operations.
 
 ---
 
 ## 6. Verifiable Code Citations
 
-- Lines 5-21: Declares `PaymentProcessor` in `sample_project\PaymentProcessor.java`.
-- Lines 14-16: Defines method `executeTransaction`.
-- Lines 18-20: Defines method `fetchTransactionHistory`.
+- Lines 12-47: Declares `PaymentProcessor` in `sample_project\PaymentProcessor.java`.
+- Lines 34-36: Defines method `executeTransaction`.
+- Lines 44-46: Defines method `fetchTransactionHistory`.
 
 ---
 

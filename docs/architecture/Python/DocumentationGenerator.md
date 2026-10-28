@@ -1,6 +1,6 @@
 # Class: `DocumentationGenerator`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\doc_generator.py`](../../analyzer\doc_generator.py#L5-L126) | **Lines**: `5 - 126`
+> **Language**: `PYTHON` | **Source**: [`analyzer\doc_generator.py`](../../analyzer\doc_generator.py#L19-L174) | **Lines**: `19 - 174`
 
 ---
 
@@ -20,7 +20,7 @@ classDiagram
 
 ## 2. Overview & Purpose
 
-Provides core abstraction and behaviors for `DocumentationGenerator`.
+Renders structured metadata into publication-ready Markdown documents with Mermaid diagrams.
 
 ### Why this class exists (Design Rationale)
 Employs Dependency Injection via constructor parameters to decouple implementations from caller code.
@@ -29,7 +29,7 @@ Employs Dependency Injection via constructor parameters to decouple implementati
 
 ## 3. Key Responsibilities
 
-- Initializes dependencies: output_dir.
+- Initializes instance dependencies: output_dir.
 - Provides operation `generate_class_doc`.
 - Provides operation `_build_mermaid_diagram`.
 - Provides operation `update_index`.
@@ -40,26 +40,39 @@ Employs Dependency Injection via constructor parameters to decouple implementati
 
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
-| **`__init__`** | `self: Any`, `output_dir: str` | `Any` | L6-L9 | Executes method logic. |
-| **`generate_class_doc`** | `self: Any`, `meta: ClassMetadata`, `explanation: ClassExplanation` | `str` | L11-L73 | Executes `generate_class_doc` accepting 3 parameter(s) and returning `str`. |
-| **`_build_mermaid_diagram`** | `self: Any`, `meta: ClassMetadata` | `str` | L75-L100 | Executes `_build_mermaid_diagram` accepting 2 parameter(s) and returning `str`. |
-| **`update_index`** | `self: Any`, `catalog: Dict[str, List[str]]` | `Any` | L102-L126 | Executes `update_index` accepting 2 parameter(s) and returning `Any`. |
+| **`__init__`** | `self: Any`, `output_dir: str` | `Any` | L24-L33 | Initializes the documentation builder.
+        
+        Args:
+            output_dir: Base directory where docs will be written (default: 'docs'). |
+| **`generate_class_doc`** | `self: Any`, `meta: ClassMetadata`, `explanation: ClassExplanation` | `str` | L35-L110 | Writes a Markdown documentation file for an individual class.
+        
+        Args:
+            meta: Raw parsed AST metadata.
+            explanation: Architectural explanation from AI or Heuristic engine.
+            
+        Returns:
+            Absolute or relative file path to the generated Markdown file. |
+| **`_build_mermaid_diagram`** | `self: Any`, `meta: ClassMetadata` | `str` | L112-L142 | Constructs a Mermaid classDiagram string depicting methods, fields, and inheritance. |
+| **`update_index`** | `self: Any`, `catalog: Dict[str, List[str]]` | `Any` | L144-L174 | Updates the root docs/README.md file with an alphabetized index of all generated documentation.
+        
+        Args:
+            catalog: Dictionary mapping Language name to list of generated Markdown file paths. |
 
 ---
 
 ## 5. Injected Dependencies & Collaborators
 
-- **`output_dir: str`**: Injected dependency used for delegating operations.
+- **`output_dir: str`**: Injected collaborator utilized for delegating specialized operations.
 
 ---
 
 ## 6. Verifiable Code Citations
 
-- Lines 5-126: Declares `DocumentationGenerator` in `analyzer\doc_generator.py`.
-- Lines 6-9: Constructor initialization.
-- Lines 11-73: Defines method `generate_class_doc`.
-- Lines 75-100: Defines method `_build_mermaid_diagram`.
-- Lines 102-126: Defines method `update_index`.
+- Lines 19-174: Declares `DocumentationGenerator` in `analyzer\doc_generator.py`.
+- Lines 24-33: Constructor initialization.
+- Lines 35-110: Defines method `generate_class_doc`.
+- Lines 112-142: Defines method `_build_mermaid_diagram`.
+- Lines 144-174: Defines method `update_index`.
 
 ---
 
