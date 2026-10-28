@@ -1,6 +1,6 @@
 # Class: `PaymentProcessor`
 
-> **Language**: `JAVA` | **Source**: [`sample_project\PaymentProcessor.java`](../../sample_project\PaymentProcessor.java#L12-L47) | **Lines**: `12 - 47`
+> **Language**: `JAVA` | **Source**: [`tests\sample_code\PaymentProcessor.java`](../../tests\sample_code\PaymentProcessor.java#L12-L47) | **Lines**: `12 - 47`
 
 ---
 
@@ -51,7 +51,7 @@ Employs Dependency Injection via constructor parameters to decouple implementati
 
 ## 6. Verifiable Code Citations
 
-- Lines 12-47: Declares `PaymentProcessor` in `sample_project\PaymentProcessor.java`.
+- Lines 12-47: Declares `PaymentProcessor` in `tests\sample_code\PaymentProcessor.java`.
 - Lines 34-36: Defines method `executeTransaction`.
 - Lines 44-46: Defines method `fetchTransactionHistory`.
 

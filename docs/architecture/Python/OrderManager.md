@@ -1,6 +1,6 @@
 # Class: `OrderManager`
 
-> **Language**: `PYTHON` | **Source**: [`sample_project\order_manager.py`](../../sample_project\order_manager.py#L31-L77) | **Lines**: `31 - 77`
+> **Language**: `PYTHON` | **Source**: [`tests\sample_code\order_manager.py`](../../tests\sample_code\order_manager.py#L31-L77) | **Lines**: `31 - 77`
 
 ---
 
@@ -74,7 +74,7 @@ Implements inheritance/interface contract from `DatabaseConnection` ensuring sub
 
 ## 6. Verifiable Code Citations
 
-- Lines 31-77: Declares `OrderManager` in `sample_project\order_manager.py`.
+- Lines 31-77: Declares `OrderManager` in `tests\sample_code\order_manager.py`.
 - Lines 38-47: Constructor initialization.
 - Lines 49-63: Defines method `create_order`.
 - Lines 65-77: Defines method `cancel_order`.

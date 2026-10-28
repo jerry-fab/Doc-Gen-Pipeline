@@ -32,6 +32,7 @@ This directory contains auto-generated architectural and functional documentatio
 | **`MethodMetadata`** | [View Documentation](architecture/Python/MethodMetadata.md) |
 | **`OrderManager`** | [View Documentation](architecture/Python/OrderManager.md) |
 | **`ParameterMetadata`** | [View Documentation](architecture/Python/ParameterMetadata.md) |
+| **`TestCodeDocumentationPipeline`** | [View Documentation](architecture/Python/TestCodeDocumentationPipeline.md) |
 | **`UniversalASTParser`** | [View Documentation](architecture/Python/UniversalASTParser.md) |
 
 ---

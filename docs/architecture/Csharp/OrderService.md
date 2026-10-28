@@ -1,6 +1,6 @@
 # Class: `OrderService`
 
-> **Language**: `CSHARP` | **Source**: [`sample_project\OrderService.cs`](../../sample_project\OrderService.cs#L24-L61) | **Lines**: `24 - 61`
+> **Language**: `CSHARP` | **Source**: [`tests\sample_code\OrderService.cs`](../../tests\sample_code\OrderService.cs#L24-L61) | **Lines**: `24 - 61`
 
 ---
 
@@ -54,7 +54,7 @@ Implements inheritance/interface contract from `IPaymentGateway` ensuring substi
 
 ## 6. Verifiable Code Citations
 
-- Lines 24-61: Declares `OrderService` in `sample_project\OrderService.cs`.
+- Lines 24-61: Declares `OrderService` in `tests\sample_code\OrderService.cs`.
 - Lines 46-50: Defines method `ChargeAsync`.
 - Lines 57-60: Defines method `GetOrderStatus`.
 

@@ -1,6 +1,6 @@
 # Class: `FileAnalysisResult`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\models.py`](../../analyzer\models.py#L103-L109) | **Lines**: `103 - 109`
+> **Language**: `PYTHON` | **Source**: [`analyzer\models\schemas.py`](../../analyzer\models\schemas.py#L60-L64) | **Lines**: `60 - 64`
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 103-109: Declares `FileAnalysisResult` in `analyzer\models.py`.
+- Lines 60-64: Declares `FileAnalysisResult` in `analyzer\models\schemas.py`.
 
 ---
 

@@ -1,6 +1,6 @@
 # Class: `DatabaseConnection`
 
-> **Language**: `PYTHON` | **Source**: [`sample_project\order_manager.py`](../../sample_project\order_manager.py#L15-L28) | **Lines**: `15 - 28`
+> **Language**: `PYTHON` | **Source**: [`tests\sample_code\order_manager.py`](../../tests\sample_code\order_manager.py#L15-L28) | **Lines**: `15 - 28`
 
 ---
 
@@ -43,7 +43,7 @@ Encapsulates specialized methods and state within a dedicated class unit adherin
 
 ## 6. Verifiable Code Citations
 
-- Lines 15-28: Declares `DatabaseConnection` in `sample_project\order_manager.py`.
+- Lines 15-28: Declares `DatabaseConnection` in `tests\sample_code\order_manager.py`.
 - Lines 20-28: Defines method `connect`.
 
 ---

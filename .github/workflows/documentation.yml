@@ -57,7 +57,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Step 4: Execute the incremental documentation engine
+      # Step 4: Run automated test suite to ensure parser integrity
+      - name: Run Test Suite
+        run: |
+          python -m unittest discover tests
+
+      # Step 5: Execute the incremental documentation engine
       - name: Run Documentation Engine
         env:
           # Optional: Add LLM_API_KEY to GitHub Secrets for natural-language AI explanations.
@@ -67,7 +72,7 @@ jobs:
         run: |
           python analyzer/main.py --diff
 
-      # Step 5: Safely commit and push updated Markdown documents back to the branch
+      # Step 6: Safely commit and push updated Markdown documents back to the branch
       - name: Commit & Push Documentation
         run: |
           git config --global user.name "github-actions[bot]"

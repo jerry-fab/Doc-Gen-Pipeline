@@ -44,15 +44,24 @@ Github-Pipeline/
 │   └── workflows/
 │       └── documentation.yml       # Production GitHub Actions workflow
 ├── analyzer/
-│   ├── models.py                   # Pydantic schemas for AST and documentation
+│   ├── __init__.py
+│   ├── main.py                     # CLI orchestrator & entry point
 │   ├── parser.py                   # Universal Tree-sitter AST parser
 │   ├── ai_engine.py                # Grounded AI & fallback explanation engine
 │   ├── doc_generator.py            # Markdown & Mermaid diagram generator
-│   └── main.py                     # CLI orchestrator
-├── sample_project/
-│   ├── order_manager.py            # Sample Python class
-│   ├── OrderService.cs             # Sample C# class with DI and interface
-│   └── PaymentProcessor.java       # Sample Java class
+│   ├── models/                     # Data contracts & Pydantic schemas
+│   │   ├── __init__.py
+│   │   └── schemas.py              # ClassMetadata, MethodMetadata, etc.
+│   └── utils/                      # Helper utilities
+│       ├── __init__.py
+│       └── git_utils.py            # Git diff detection & directory scanner
+├── tests/                          # Automated test suite & test sample code
+│   ├── __init__.py
+│   ├── test_pipeline.py            # Unittest suite for parser & generator
+│   └── sample_code/                # Multi-language test files
+│       ├── order_manager.py        # Python sample
+│       ├── OrderService.cs         # C# sample
+│       └── PaymentProcessor.java   # Java sample
 ├── docs/                           # Auto-generated documentation directory
 │   ├── README.md                   # Class catalog index
 │   └── architecture/               # Language-specific markdown docs

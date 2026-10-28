@@ -1,6 +1,6 @@
 # Class: `IPaymentGateway`
 
-> **Language**: `CSHARP` | **Source**: [`sample_project\OrderService.cs`](../../sample_project\OrderService.cs#L9-L18) | **Lines**: `9 - 18`
+> **Language**: `CSHARP` | **Source**: [`tests\sample_code\OrderService.cs`](../../tests\sample_code\OrderService.cs#L9-L18) | **Lines**: `9 - 18`
 
 ---
 
@@ -40,7 +40,7 @@ Encapsulates specialized methods and state within a dedicated class unit adherin
 
 ## 6. Verifiable Code Citations
 
-- Lines 9-18: Declares `IPaymentGateway` in `sample_project\OrderService.cs`.
+- Lines 9-18: Declares `IPaymentGateway` in `tests\sample_code\OrderService.cs`.
 - Lines 17-17: Defines method `ChargeAsync`.
 
 ---
