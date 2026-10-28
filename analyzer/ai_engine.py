@@ -7,47 +7,47 @@ Grounded AI Explanation Engine for Code Architecture.
 Responsibilities:
     1. Interprets AST structures and source code to explain class purpose and architectural rationale.
     2. Implements strict anti-hallucination guardrails (only describes directly observable facts).
-    3. Provides a 100% offline, deterministic heuristic fallback when no external LLM API key is present.
-
-Design Philosophy:
-    LLMs frequently hallucinate missing business rules (e.g. inventing database writes or validation
-    logic that isn't in the file). This engine enforces evidence citations (line numbers) and
-    explicitly mandates unknown boundary identification.
+    3. Reads settings directly from `config.json` via `analyzer.utils.load_config` (no environment variables required).
+    4. Provides a 100% offline, deterministic heuristic fallback when no LLM API key is enabled in config.json.
 """
 
-import os
 import json
 from typing import Optional
 import requests
-from dotenv import load_dotenv
 
 from analyzer.models import ClassMetadata, ClassExplanation
-
-# Load environment configuration from .env if present
-load_dotenv()
+from analyzer.utils import load_config, LLMConfig
 
 
 class AIDocumentationEngine:
     """
     Coordinates semantic analysis and documentation synthesis using hosted LLMs or local fallbacks.
+    Reads configuration directly from `config.json`.
     """
 
-    def __init__(self):
+    def __init__(self, config: Optional[LLMConfig] = None):
         """
-        Initializes API credentials and endpoints from environment variables.
-        Supports OpenAI, Google Gemini, OpenRouter, Groq, or local Ollama instances.
+        Initializes API credentials and endpoints from config.json.
+        
+        Args:
+            config: Optional LLMConfig instance. If None, loads from config.json.
         """
-        self.api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY") or os.getenv("GEMINI_API_KEY")
-        self.api_base = os.getenv("LLM_API_BASE", "https://api.openai.com/v1")
-        self.model = os.getenv("LLM_MODEL", "gpt-4o-mini")
+        app_config = load_config()
+        self.config = config or app_config.llm
+        self.api_key = self.config.api_key.strip() if self.config.api_key else ""
+        self.api_base = self.config.api_base
+        self.model = self.config.model
+        self.temperature = self.config.temperature
+        self.timeout = self.config.timeout_seconds
+        self.is_enabled = self.config.enabled and bool(self.api_key)
 
     def explain_class(self, metadata: ClassMetadata) -> ClassExplanation:
         """
         Generates an architectural explanation for a given class.
         
         Strategy:
-            - If LLM_API_KEY is configured: Invokes LLM with strict grounding prompt.
-            - If LLM call fails or no API key is set: Falls back to deterministic heuristic explainer.
+            - If LLM is enabled with an API key in config.json: Invokes LLM with strict grounding prompt.
+            - Otherwise: Executes the fast, deterministic grounded heuristic explainer.
         
         Args:
             metadata: Parsed ClassMetadata from UniversalASTParser.
@@ -55,7 +55,7 @@ class AIDocumentationEngine:
         Returns:
             ClassExplanation object populated with verifiable facts.
         """
-        if self.api_key:
+        if self.is_enabled:
             try:
                 return self._call_llm(metadata)
             except Exception as exc:
@@ -66,7 +66,7 @@ class AIDocumentationEngine:
 
     def _call_llm(self, metadata: ClassMetadata) -> ClassExplanation:
         """
-        Executes an HTTP request to an OpenAI-compatible REST endpoint with strict guardrails.
+        Executes an HTTP request to the configured REST endpoint with strict grounding guardrails.
         """
         prompt = f"""
 You are a Senior Software Architect and technical documentation specialist.
@@ -114,7 +114,7 @@ Respond with strict JSON adhering to this schema:
                 },
                 {"role": "user", "content": prompt}
             ],
-            "temperature": 0.1,  # Low temperature ensures deterministic, objective output
+            "temperature": self.temperature,
             "response_format": {"type": "json_object"} if "gpt" in self.model else None
         }
 
@@ -122,7 +122,7 @@ Respond with strict JSON adhering to this schema:
             f"{self.api_base}/chat/completions",
             headers=headers,
             json=payload,
-            timeout=30
+            timeout=self.timeout
         )
         response.raise_for_status()
         content = response.json()["choices"][0]["message"]["content"]

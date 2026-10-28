@@ -1,0 +1,31 @@
+{
+  "llm": {
+    "enabled": false,
+    "api_key": "",
+    "api_base": "https://api.openai.com/v1",
+    "model": "gpt-4o-mini",
+    "temperature": 0.1,
+    "timeout_seconds": 30
+  },
+  "generator": {
+    "output_dir": "docs",
+    "include_mermaid_diagrams": true,
+    "max_fields_in_diagram": 5
+  },
+  "scanner": {
+    "supported_extensions": [".py", ".cs", ".java"],
+    "ignored_directories": [
+      ".git",
+      ".github",
+      "docs",
+      "venv",
+      ".venv",
+      "bin",
+      "obj",
+      "node_modules",
+      "__pycache__",
+      "build",
+      "dist"
+    ]
+  }
+}
