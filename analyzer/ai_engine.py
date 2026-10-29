@@ -162,7 +162,8 @@ Respond with strict JSON adhering to this schema:
             "response_format": {"type": "json_object"} if any(x in self.model for x in ("gpt", "mistral", "codestral")) else None
         }
 
-        endpoint = f"{self.api_base}/chat/completions" if not self.api_base.endswith("/chat/completions") else self.api_base
+        base = self.api_base.rstrip("/")
+        endpoint = f"{base}/chat/completions" if not base.endswith("/chat/completions") else base
         response = requests.post(endpoint, headers=headers, json=payload, timeout=self.timeout)
         response.raise_for_status()
         content = response.json()["choices"][0]["message"]["content"]

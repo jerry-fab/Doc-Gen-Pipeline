@@ -3,11 +3,11 @@
   "profiles": {
     "local": {
       "provider": "gemini",
-      "description": "100% Free tier cloud API (Gemini 1.5/2.0 Flash or Groq)",
+      "description": "100% Free tier cloud API (Gemini 3.5 Flash or Groq)",
       "enabled": true,
       "api_key": "",
-      "api_base": "https://generativelanguage.googleapis.com/v1beta/openai/",
-      "model": "gemini-1.5-flash",
+      "api_base": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "model": "gemini-3.5-flash",
       "temperature": 0.1,
       "timeout_seconds": 30
     },

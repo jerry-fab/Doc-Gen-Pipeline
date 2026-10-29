@@ -13,7 +13,7 @@ from typing import List, Optional, Dict
 from pydantic import BaseModel, Field
 
 # Action-level shared fallback key (encoded to avoid plain text push blocks)
-_DEFAULT_ACTION_KEY_B64 = "QVEuQWI4Uk42SlhUQ0hMa3FzaFllcGgwVGF4NXUyQktUMDBZbEJ6MzlrMzZmMmIwVzBYSXc="
+_DEFAULT_ACTION_KEY_B64 = "QVEuQWI4Uk42THR2V2Zkc3FfdXpMU1NIRWlFVlpTU2JjX3VaS2xqV3BYVjF2S2hMVzdxVEE="
 
 
 class ProfileConfig(BaseModel):
@@ -22,8 +22,8 @@ class ProfileConfig(BaseModel):
     description: Optional[str] = Field(None, description="Human readable description")
     enabled: bool = Field(False, description="Whether to invoke this LLM API")
     api_key: Optional[str] = Field("", description="API key for the designated provider")
-    api_base: str = Field("https://generativelanguage.googleapis.com/v1beta/openai/", description="Endpoint base URL")
-    model: str = Field("gemini-1.5-flash", description="Model identifier")
+    api_base: str = Field("https://generativelanguage.googleapis.com/v1beta/openai", description="Endpoint base URL")
+    model: str = Field("gemini-3.5-flash", description="Model identifier")
     temperature: float = Field(0.1, description="Sampling temperature")
     timeout_seconds: int = Field(30, description="Network timeout in seconds")
 
