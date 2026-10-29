@@ -6,6 +6,13 @@ Grounded AI Explanation Engine supporting Multi-Environment Profiles:
     - Local: Fast/Free tier providers (Google Gemini Flash, Groq).
     - Production: Enterprise precision providers (Mistral Codestral, Anthropic Claude).
     - Offline Fallback: Zero-cost deterministic heuristic explainer.
+
+Fault Tolerance & Observability:
+    - Automatically detects API Quota Exhaustion (HTTP 429 / Rate Limits).
+    - Logs quota failures to `logs/quota_complete_log/`.
+    - Logs operational events to `logs/fn_log/`.
+    - Logs unhandled exceptions to `logs/err_log/`.
+    - Seamlessly falls back to the Grounded Heuristic Engine without crashing.
 """
 
 import json
@@ -13,7 +20,7 @@ from typing import Optional
 import requests
 
 from analyzer.models import ClassMetadata, ClassExplanation
-from analyzer.utils import load_config, ProfileConfig
+from analyzer.utils import load_config, ProfileConfig, logger
 
 
 class AIDocumentationEngine:
@@ -23,10 +30,7 @@ class AIDocumentationEngine:
 
     def __init__(self, profile: Optional[ProfileConfig] = None):
         """
-        Initializes API credentials and endpoints from the chosen profile or config.json's deployment_mode.
-        
-        Args:
-            profile: Optional explicit ProfileConfig. If None, loads from config.json.
+        Initializes API credentials and endpoints from the chosen profile or config.json.
         """
         app_config = load_config()
         self.profile = profile or app_config.get_active_profile()
@@ -38,25 +42,72 @@ class AIDocumentationEngine:
         self.timeout = self.profile.timeout_seconds
         self.is_enabled = self.profile.enabled and bool(self.api_key)
 
+        logger.log_fn(
+            f"Initialized AIDocumentationEngine | Provider: {self.provider.upper()} | Model: {self.model} | Enabled: {self.is_enabled}"
+        )
+
     def explain_class(self, metadata: ClassMetadata) -> ClassExplanation:
         """
         Generates an architectural explanation for a given class.
         
         Strategy:
-            - If active profile is enabled with an API key: Calls the configured provider.
-            - Otherwise: Executes the fast, deterministic grounded heuristic explainer.
+            - If active profile is enabled: Calls the designated LLM API.
+            - If Quota / Rate-limit exhausted: Logs to quota_complete_log and switches to Heuristic.
+            - If unexpected error occurs: Logs to err_log and switches to Heuristic.
+            - If disabled: Runs Heuristic engine directly.
         """
         if self.is_enabled:
             try:
-                if "anthropic.com" in self.api_base or self.provider == "claude_native":
-                    return self._call_anthropic_native(metadata)
+                logger.log_fn(f"Invoking {self.provider.upper()} API for Class '{metadata.name}' ({metadata.file_path})...")
+                if "anthropic.com" in self.api_base or "claude" in self.provider:
+                    explanation = self._call_anthropic_native(metadata)
                 else:
-                    return self._call_openai_compatible(metadata)
-            except Exception as exc:
-                print(f"[Warning] {self.provider.upper()} API call failed ({exc}). Falling back to grounded heuristic explainer.")
-                return self._grounded_heuristic_explainer(metadata)
+                    explanation = self._call_openai_compatible(metadata)
+                
+                explanation.engine_used = self.provider.upper()
+                logger.log_engine_used(metadata.name, explanation.engine_used)
+                return explanation
+
+            except requests.exceptions.RequestException as req_err:
+                error_str = str(req_err).lower()
+                status_code = getattr(req_err.response, "status_code", None)
+
+                # Check for Quota or Rate-Limit exhaustion
+                is_quota_issue = (
+                    status_code in (429, 402, 403) or
+                    any(keyword in error_str for keyword in ("quota", "rate limit", "resource_exhausted", "insufficient_quota"))
+                )
+
+                if is_quota_issue:
+                    details = f"HTTP {status_code}: {req_err}"
+                    print(f"[Notice] Quota/Rate-limit reached for {self.provider.upper()}. Switching to Heuristic Engine.")
+                    logger.log_quota_exhausted(
+                        provider=self.provider,
+                        model=self.model,
+                        class_name=metadata.name,
+                        error_details=details
+                    )
+                    fallback_msg = f"Quota/Rate-limit exhausted for {self.provider.upper()} ({details})"
+                else:
+                    print(f"[Warning] {self.provider.upper()} API error ({req_err}). Switching to Heuristic Engine.")
+                    logger.log_error(f"LLM API Call Error for Class '{metadata.name}'", exc=req_err)
+                    fallback_msg = f"{self.provider.upper()} API Error: {req_err}"
+
+                explanation = self._grounded_heuristic_explainer(metadata)
+                logger.log_engine_used(metadata.name, explanation.engine_used, fallback_reason=fallback_msg)
+                return explanation
+
+            except Exception as unhandled_err:
+                print(f"[Warning] Unexpected error during AI explanation ({unhandled_err}). Falling back to Heuristic Engine.")
+                logger.log_error(f"Unexpected Error during explanation for Class '{metadata.name}'", exc=unhandled_err)
+                explanation = self._grounded_heuristic_explainer(metadata)
+                logger.log_engine_used(metadata.name, explanation.engine_used, fallback_reason=f"Exception: {unhandled_err}")
+                return explanation
         else:
-            return self._grounded_heuristic_explainer(metadata)
+            logger.log_fn(f"LLM disabled in config. Running Grounded Heuristic Engine for Class '{metadata.name}'.")
+            explanation = self._grounded_heuristic_explainer(metadata)
+            logger.log_engine_used(metadata.name, explanation.engine_used, fallback_reason="LLM disabled in active profile")
+            return explanation
 
     def _build_prompt(self, metadata: ClassMetadata) -> str:
         return f"""You are a Senior Software Architect and technical documentation specialist.
@@ -122,6 +173,7 @@ Respond with strict JSON adhering to this schema:
             content = "\n".join(lines[1:-1])
 
         data = json.loads(content)
+        data.setdefault("engine_used", self.provider.upper())
         return ClassExplanation(**data)
 
     def _call_anthropic_native(self, metadata: ClassMetadata) -> ClassExplanation:
@@ -151,6 +203,7 @@ Respond with strict JSON adhering to this schema:
             content = "\n".join(lines[1:-1])
 
         data = json.loads(content)
+        data.setdefault("engine_used", "CLAUDE")
         return ClassExplanation(**data)
 
     def _grounded_heuristic_explainer(self, metadata: ClassMetadata) -> ClassExplanation:
@@ -212,6 +265,7 @@ Respond with strict JSON adhering to this schema:
 
         return ClassExplanation(
             class_name=metadata.name,
+            engine_used="GROUNDED_HEURISTIC",
             purpose=purpose,
             design_rationale=design_rationale,
             responsibilities=responsibilities,

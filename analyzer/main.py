@@ -6,6 +6,7 @@ Command-Line Interface (CLI) and Orchestrator for the Code Documentation Pipelin
 
 Features:
     - Guided by `config.json`'s `"deployment_mode"` ('local' or 'production').
+    - Multi-Channel Logging: Writes to logs/err_log/, logs/fn_log/, logs/quota_complete_log/.
     - Incremental Scanning: Analyzes only files modified in the latest Git commit (`--diff`).
     - Full Workspace Scanning: Recursively scans and parses all supported languages (`--all`).
     - Targeted Scanning: Inspects an individual file or directory (`--path <path>`).
@@ -14,7 +15,7 @@ Features:
 Usage:
     python analyzer/main.py --all
     python analyzer/main.py --diff
-    python analyzer/main.py --path tests/sample_code/OrderService.cs
+    python analyzer/main.py --path analyzer/parser.py
 """
 
 import os
@@ -33,16 +34,21 @@ from analyzer.utils import (
     load_config,
     get_git_diff_files,
     scan_directory,
+    logger,
 )
 
 
 def main():
     """CLI Entry point for executing the automated documentation workflow."""
+    logger.log_fn("========== Documentation Pipeline Started ==========")
+    
     # 1. Load centralized configuration from config.json
     config = load_config()
     active_profile = config.get_active_profile()
 
-    print(f"[*] Deployment Mode: '{config.deployment_mode.upper()}' | Provider: '{active_profile.provider}' | Model: '{active_profile.model}'")
+    mode_info = f"Deployment Mode: '{config.deployment_mode.upper()}' | Provider: '{active_profile.provider}' | Model: '{active_profile.model}'"
+    print(f"[*] {mode_info}")
+    logger.log_fn(mode_info)
 
     cli_parser = argparse.ArgumentParser(
         description="Automated Multi-Language Code Documentation Engine"
@@ -78,23 +84,32 @@ def main():
 
     if args.diff:
         print("[Mode] Git Diff detection (incremental modified files only)")
+        logger.log_fn("Scan Mode: Incremental Git Diff (HEAD~1 -> HEAD)")
         target_files = get_git_diff_files(supported_exts=supported_exts)
         if not target_files:
             print("[Info] No modified files detected in latest commit. Scanning workspace as fallback.")
+            logger.log_fn("No git diff files found. Scanning workspace fallback.")
             target_files = scan_directory(".", supported_exts=supported_exts)
     elif args.path:
         if os.path.isfile(args.path):
             target_files = [args.path]
+            logger.log_fn(f"Scan Mode: Single Target File ({args.path})")
         elif os.path.isdir(args.path):
             target_files = scan_directory(args.path, supported_exts=supported_exts)
+            logger.log_fn(f"Scan Mode: Target Directory ({args.path})")
         else:
-            print(f"[Error] Specified path '{args.path}' does not exist.")
+            err_msg = f"Specified path '{args.path}' does not exist."
+            print(f"[Error] {err_msg}")
+            logger.log_error(err_msg)
             sys.exit(1)
     else:
         # Default behavior: scan all files
+        logger.log_fn("Scan Mode: Full Workspace Scan")
         target_files = scan_directory(".", supported_exts=supported_exts)
 
-    print(f"[*] Discovered {len(target_files)} source file(s) for architectural analysis.")
+    summary_scan = f"Discovered {len(target_files)} source file(s) for architectural analysis."
+    print(f"[*] {summary_scan}")
+    logger.log_fn(summary_scan)
 
     # Initialize processing engines
     ast_parser = UniversalASTParser()
@@ -107,8 +122,17 @@ def main():
     # Execute parsing and documentation generation
     for file_path in target_files:
         print(f"  -> Parsing: {file_path}")
-        result = ast_parser.parse_file(file_path)
+        logger.log_fn(f"Starting AST parse for: {file_path}")
+        
+        try:
+            result = ast_parser.parse_file(file_path)
+        except Exception as parse_exc:
+            print(f"  [Error] Failed parsing {file_path}: {parse_exc}")
+            logger.log_error(f"AST Parsing failure for file '{file_path}'", exc=parse_exc)
+            continue
+
         if not result or not result.classes:
+            logger.log_fn(f"No classes found in: {file_path}")
             continue
 
         lang_name = result.language.capitalize()
@@ -117,18 +141,31 @@ def main():
 
         for cls_meta in result.classes:
             print(f"     Found Class: {cls_meta.name} (Lines {cls_meta.start_line}-{cls_meta.end_line})")
-            explanation = ai_engine.explain_class(cls_meta)
-            out_file = doc_gen.generate_class_doc(cls_meta, explanation)
-            catalog[lang_name].append(out_file)
-            total_classes += 1
+            logger.log_fn(f"Processing Class '{cls_meta.name}' in '{file_path}' (Lines {cls_meta.start_line}-{cls_meta.end_line})")
+            
+            try:
+                explanation = ai_engine.explain_class(cls_meta)
+                print(f"     [Engine Used]: {explanation.engine_used}")
+                out_file = doc_gen.generate_class_doc(cls_meta, explanation)
+                catalog[lang_name].append(out_file)
+                total_classes += 1
+                logger.log_fn(f"Generated documentation artifact with [{explanation.engine_used}]: {out_file}")
+            except Exception as doc_exc:
+                print(f"  [Error] Failed generating doc for class '{cls_meta.name}': {doc_exc}")
+                logger.log_error(f"Doc generation failure for class '{cls_meta.name}' in '{file_path}'", exc=doc_exc)
 
     # Update root catalog index
     if catalog:
         doc_gen.update_index(catalog)
-        print(f"\n[Success] Generated documentation for {total_classes} class(es).")
-        print(f"[Success] Catalog index updated at `{os.path.join(args.output_dir, 'README.md')}`.")
+        success_msg = f"Generated documentation for {total_classes} class(es). Catalog index updated at '{os.path.join(args.output_dir, 'README.md')}'."
+        print(f"\n[Success] {success_msg}")
+        logger.log_fn(success_msg)
     else:
-        print("\n[Notice] No classes found in the scanned files.")
+        notice_msg = "No classes found in the scanned files."
+        print(f"\n[Notice] {notice_msg}")
+        logger.log_fn(notice_msg)
+
+    logger.log_fn("========== Documentation Pipeline Completed ==========\n")
 
 
 if __name__ == "__main__":

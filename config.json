@@ -4,7 +4,7 @@
     "local": {
       "provider": "gemini",
       "description": "100% Free tier cloud API (Gemini 1.5/2.0 Flash or Groq)",
-      "enabled": false,
+      "enabled": true,
       "api_key": "",
       "api_base": "https://generativelanguage.googleapis.com/v1beta/openai/",
       "model": "gemini-1.5-flash",
@@ -28,7 +28,11 @@
     "max_fields_in_diagram": 5
   },
   "scanner": {
-    "supported_extensions": [".py", ".cs", ".java"],
+    "supported_extensions": [
+      ".py",
+      ".cs",
+      ".java"
+    ],
     "ignored_directories": [
       ".git",
       ".github",

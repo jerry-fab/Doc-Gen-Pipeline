@@ -1,17 +1,12 @@
 # =============================================================================
 # GitHub Actions: Automated Code Documentation Pipeline
 # =============================================================================
-# Purpose:
-#   Automatically analyzes pushed source code files across multiple languages
-#   (Python, C#, Java), extracts AST class structures and dependencies, generates
-#   architectural explanations and Mermaid.js diagrams, and commits documentation
-#   back to the repository.
+# This workflow invokes our custom Reusable Composite Action (`action.yml`).
 #
-# Production Safety Features:
-#   1. paths-ignore: ['docs/**'] prevents redundant trigger loops when docs are updated.
-#   2. [skip ci] flag in git commit avoids recursive GitHub Actions runs.
-#   3. permissions: contents: write allows github-actions[bot] to commit back.
-#   4. Incremental scanning (--diff) only processes modified files to save build time.
+# How it works:
+#   1. In THIS repository: `uses: ./` invokes the root `action.yml` directly.
+#   2. In OTHER target repositories: Change `uses: ./` to:
+#        `uses: <your-github-username>/Github-Pipeline@main`
 # =============================================================================
 
 name: Automated Code Documentation Pipeline
@@ -22,67 +17,31 @@ on:
       - main
       - master
     paths-ignore:
-      # Ignore documentation and markdown files to prevent triggering pipeline on doc commits
       - 'docs/**'
       - '*.md'
       - '.gitignore'
-  workflow_dispatch: # Allows manual trigger from GitHub Actions web console
+  workflow_dispatch:
 
-# Grant write permissions to the repository contents for automated commits
 permissions:
   contents: write
 
 jobs:
   generate-docs:
     runs-on: ubuntu-latest
-    name: Parse AST & Generate Documentation
+    name: Execute Code Documentation Action
 
     steps:
-      # Step 1: Checkout repository code with depth 2 to allow git diff HEAD~1 HEAD
+      # Step 1: Checkout repository code with depth 2 for incremental diffs
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
-      # Step 2: Configure Python runtime environment
-      - name: Set up Python Runtime
-        uses: actions/setup-python@v5
+      # Step 2: Invoke our Composite Action!
+      # (All python setup, dependency installation, AST parsing, and auto-commit happen inside action.yml)
+      - name: Run Documentation Action
+        uses: ./
         with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      # Step 3: Install Tree-sitter parsers and pipeline dependencies
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      # Step 4: Run automated test suite to ensure parser integrity
-      - name: Run Test Suite
-        run: |
-          python -m unittest discover tests
-
-      # Step 5: Execute the incremental documentation engine
-      - name: Run Documentation Engine
-        env:
-          # Optional: Add LLM_API_KEY to GitHub Secrets for natural-language AI explanations.
-          # If not set, the pipeline automatically uses the built-in deterministic fallback engine.
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-          LLM_MODEL: ${{ vars.LLM_MODEL || 'gpt-4o-mini' }}
-        run: |
-          python analyzer/main.py --diff
-
-      # Step 6: Safely commit and push updated Markdown documents back to the branch
-      - name: Commit & Push Documentation
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          git add docs/
-          if git diff --staged --quiet; then
-            echo "No documentation changes detected to commit."
-          else
-            # [skip ci] ensures this automated commit will NOT trigger a secondary workflow
-            git commit -m "docs: auto-update class architecture documentation [skip ci]"
-            git push origin HEAD:${{ github.ref_name }}
-          fi
+          output_dir: 'docs'
+          commit_message: 'docs: auto-update class architecture documentation [skip ci]'
+          api_key: ${{ secrets.LLM_API_KEY || secrets.GEMINI_API_KEY }}

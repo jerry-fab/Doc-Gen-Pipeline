@@ -63,7 +63,23 @@ class AppConfig(BaseModel):
         """
         mode = self.deployment_mode.lower().strip()
         if mode in self.profiles:
-            return self.profiles[mode]
+            profile = self.profiles[mode]
+            
+            # 1. Resolve ${ENV_VAR} syntax if specified in config.json
+            if profile.api_key and profile.api_key.startswith("${") and profile.api_key.endswith("}"):
+                env_var_name = profile.api_key[2:-1]
+                profile.api_key = os.getenv(env_var_name, "")
+
+            # 2. If api_key is empty, automatically fallback to GitHub Actions Secrets / Environment Variables
+            if not profile.api_key:
+                profile.api_key = (
+                    os.getenv("LLM_API_KEY") or
+                    os.getenv("GEMINI_API_KEY") or
+                    os.getenv("MISTRAL_API_KEY") or
+                    os.getenv("ANTHROPIC_API_KEY") or
+                    ""
+                )
+            return profile
         
         # Fallback profile if key not matched
         return ProfileConfig()
@@ -72,14 +88,6 @@ class AppConfig(BaseModel):
 def load_config(config_path: Optional[str] = None) -> AppConfig:
     """
     Loads and parses configuration from config.json.
-    
-    If config.json is not found or malformed, returns safe default configuration.
-    
-    Args:
-        config_path: Path to config.json. If None, searches project root.
-        
-    Returns:
-        AppConfig instance with validated settings.
     """
     if config_path is None:
         root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

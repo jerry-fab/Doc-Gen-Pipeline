@@ -54,7 +54,7 @@ class DocumentationGenerator:
         # Assemble GitHub Markdown document
         md = f"""# Class: `{meta.name}`
 
-> **Language**: `{meta.language.upper()}` | **Source**: [`{meta.file_path}`](../../{meta.file_path}#L{meta.start_line}-L{meta.end_line}) | **Lines**: `{meta.start_line} - {meta.end_line}`
+> **Language**: `{meta.language.upper()}` | **Engine**: `{explanation.engine_used}` | **Source**: [`{meta.file_path}`](../../{meta.file_path}#L{meta.start_line}-L{meta.end_line}) | **Lines**: `{meta.start_line} - {meta.end_line}`
 
 ---
 

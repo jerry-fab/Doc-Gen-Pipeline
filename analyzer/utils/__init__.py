@@ -2,7 +2,7 @@
 analyzer.utils
 ~~~~~~~~~~~~~~
 
-Public exports for utility helper functions and configuration loading.
+Public exports for utility helper functions, configuration loading, and logging.
 """
 
 from analyzer.utils.git_utils import (
@@ -17,6 +17,10 @@ from analyzer.utils.config_loader import (
     GeneratorConfig,
     ScannerConfig,
 )
+from analyzer.utils.logger import (
+    logger,
+    PipelineLogger,
+)
 
 __all__ = [
     "get_git_diff_files",
@@ -27,4 +31,6 @@ __all__ = [
     "ProfileConfig",
     "GeneratorConfig",
     "ScannerConfig",
+    "logger",
+    "PipelineLogger",
 ]

@@ -1,0 +1,86 @@
+# =============================================================================
+# Reusable GitHub Action: Automated Code Documentation Generator
+# =============================================================================
+# Usage in any target repository:
+#
+#   - name: Generate Code Documentation
+#     uses: <your-github-username>/Github-Pipeline@main
+#     with:
+#       deployment_mode: 'local'   # or 'production'
+#       output_dir: 'docs'
+# =============================================================================
+
+name: 'Multi-Language Code Documentation Generator'
+description: 'Automatically analyzes modified Python, C#, and Java code using Tree-sitter AST, generates architectural docs with Mermaid diagrams, and commits them.'
+author: 'Engineering Team'
+
+branding:
+  icon: 'book-open'
+  color: 'blue'
+
+inputs:
+  deployment_mode:
+    description: "Deployment mode from config.json: 'local' or 'production'"
+    required: false
+    default: 'local'
+  output_dir:
+    description: "Directory where generated documentation will be stored"
+    required: false
+    default: 'docs'
+  api_key:
+    description: "API Key for AI explanation engine (e.g. Gemini, Mistral, Claude)"
+    required: false
+    default: ""
+  commit_message:
+    description: "Commit message for automated documentation updates"
+    required: false
+    default: "docs: auto-update class architecture documentation [skip ci]"
+
+runs:
+  using: "composite"
+  steps:
+    # 1. Ensure Python 3.11 is configured on the runner
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    # 2. Install dependencies from this action's repository
+    - name: Install Action Dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r ${{ github.action_path }}/requirements.txt
+
+    # 3. Execute the documentation engine against the target workspace
+    - name: Run Documentation Engine
+      shell: bash
+      env:
+        LLM_API_KEY: ${{ inputs.api_key || env.LLM_API_KEY }}
+        GEMINI_API_KEY: ${{ env.GEMINI_API_KEY }}
+        MISTRAL_API_KEY: ${{ env.MISTRAL_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ env.ANTHROPIC_API_KEY }}
+      run: |
+        # If target repo doesn't have a config.json, copy default from action
+        if [ ! -f "config.json" ]; then
+          cp ${{ github.action_path }}/config.json ./config.json
+        fi
+        
+        # Run incremental analyzer on changed files
+        python ${{ github.action_path }}/analyzer/main.py --diff --output-dir "${{ inputs.output_dir }}"
+
+    # 4. Safely commit and push updated docs to the target repository
+    - name: Commit & Push Documentation
+      shell: bash
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+        git add "${{ inputs.output_dir }}/"
+        if git diff --staged --quiet; then
+          echo "No documentation changes detected to commit."
+        else
+          git commit -m "${{ inputs.commit_message }}"
+          git push origin HEAD:${{ github.ref_name }}
+        fi
