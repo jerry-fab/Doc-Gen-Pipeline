@@ -21,10 +21,26 @@ from tree_sitter import Language, Parser, Node
 import tree_sitter_python as tspython
 import tree_sitter_c_sharp as tscsharp
 import tree_sitter_java as tsjava
-import tree_sitter_javascript as tsjs
-import tree_sitter_typescript as tsts
-import tree_sitter_go as tsgo
-import tree_sitter_rust as tsrs
+
+try:
+    import tree_sitter_javascript as tsjs  # type: ignore
+except ImportError:
+    tsjs = None
+
+try:
+    import tree_sitter_typescript as tsts  # type: ignore
+except ImportError:
+    tsts = None
+
+try:
+    import tree_sitter_go as tsgo  # type: ignore
+except ImportError:
+    tsgo = None
+
+try:
+    import tree_sitter_rust as tsrs  # type: ignore
+except ImportError:
+    tsrs = None
 
 from analyzer.models import ClassMetadata, MethodMetadata, ParameterMetadata, FileAnalysisResult
 
@@ -61,39 +77,44 @@ class UniversalASTParser:
             print(f"[Warning] Failed to initialize Java grammar: {exc}")
 
         # 4. Initialize JavaScript / JSX Grammar
-        try:
-            self.js_lang = Language(tsjs.language())
-            self.parsers["javascript"] = Parser(self.js_lang)
-        except Exception as exc:
-            print(f"[Warning] Failed to initialize JavaScript grammar: {exc}")
+        if tsjs:
+            try:
+                self.js_lang = Language(tsjs.language())
+                self.parsers["javascript"] = Parser(self.js_lang)
+            except Exception as exc:
+                print(f"[Warning] Failed to initialize JavaScript grammar: {exc}")
 
         # 5. Initialize TypeScript Grammar
-        try:
-            self.ts_lang = Language(tsts.language_typescript())
-            self.parsers["typescript"] = Parser(self.ts_lang)
-        except Exception as exc:
-            print(f"[Warning] Failed to initialize TypeScript grammar: {exc}")
+        if tsts:
+            try:
+                self.ts_lang = Language(tsts.language_typescript())
+                self.parsers["typescript"] = Parser(self.ts_lang)
+            except Exception as exc:
+                print(f"[Warning] Failed to initialize TypeScript grammar: {exc}")
 
         # 6. Initialize TSX Grammar
-        try:
-            self.tsx_lang = Language(tsts.language_tsx())
-            self.parsers["tsx"] = Parser(self.tsx_lang)
-        except Exception as exc:
-            print(f"[Warning] Failed to initialize TSX grammar: {exc}")
+        if tsts:
+            try:
+                self.tsx_lang = Language(tsts.language_tsx())
+                self.parsers["tsx"] = Parser(self.tsx_lang)
+            except Exception as exc:
+                print(f"[Warning] Failed to initialize TSX grammar: {exc}")
 
         # 7. Initialize Go Grammar
-        try:
-            self.go_lang = Language(tsgo.language())
-            self.parsers["go"] = Parser(self.go_lang)
-        except Exception as exc:
-            print(f"[Warning] Failed to initialize Go grammar: {exc}")
+        if tsgo:
+            try:
+                self.go_lang = Language(tsgo.language())
+                self.parsers["go"] = Parser(self.go_lang)
+            except Exception as exc:
+                print(f"[Warning] Failed to initialize Go grammar: {exc}")
 
         # 8. Initialize Rust Grammar
-        try:
-            self.rs_lang = Language(tsrs.language())
-            self.parsers["rust"] = Parser(self.rs_lang)
-        except Exception as exc:
-            print(f"[Warning] Failed to initialize Rust grammar: {exc}")
+        if tsrs:
+            try:
+                self.rs_lang = Language(tsrs.language())
+                self.parsers["rust"] = Parser(self.rs_lang)
+            except Exception as exc:
+                print(f"[Warning] Failed to initialize Rust grammar: {exc}")
 
     def detect_language(self, file_path: str) -> Optional[str]:
         """
