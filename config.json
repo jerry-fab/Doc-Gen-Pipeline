@@ -22,6 +22,10 @@
       "timeout_seconds": 45
     }
   },
+  "logging": {
+    "max_age_hours": 1,
+    "max_size_mb": 10
+  },
   "generator": {
     "output_dir": "docs",
     "include_mermaid_diagrams": true,

@@ -44,15 +44,32 @@ class PipelineLogger:
         self.err_logger = self._setup_logger("pipeline_err", self.err_file, logging.ERROR)
         self.quota_logger = self._setup_logger("pipeline_quota", self.quota_file, logging.WARNING)
 
-        # Automatically purge logs older than 1 hour (3600 seconds)
-        self.cleanup_old_logs(max_age_seconds=3600)
+        # Automatically purge logs older than configured time / exceeding max_size_mb
+        self.cleanup_old_logs()
 
-    def cleanup_old_logs(self, max_age_seconds: int = 3600):
+    def cleanup_old_logs(self, max_age_seconds: Optional[int] = None, max_size_mb: Optional[float] = None):
         """
-        Maintains only the logs generated within the last 1 hour (max_age_seconds).
-        Automatically removes older log files across err_log, fn_log, and quota_complete_log.
+        Maintains logs within configured age and total storage size.
+        1. Age-based: Purges log files older than max_age_seconds (default 1 hour / config.json).
+        2. Size-based: If combined size of all log files exceeds max_size_mb (config.json),
+           purges oldest log files automatically until under the threshold.
         """
+        if max_age_seconds is None or max_size_mb is None:
+            try:
+                from analyzer.utils.config_loader import load_config
+                cfg = load_config()
+                if max_age_seconds is None:
+                    max_age_seconds = int(cfg.logging.max_age_hours * 3600)
+                if max_size_mb is None:
+                    max_size_mb = float(cfg.logging.max_size_mb)
+            except Exception:
+                if max_age_seconds is None:
+                    max_age_seconds = 3600
+                if max_size_mb is None:
+                    max_size_mb = 10.0
+
         now = datetime.now()
+        # Step 1: Age-based purge
         for log_dir in [self.err_dir, self.fn_dir, self.quota_dir]:
             if not os.path.isdir(log_dir):
                 continue
@@ -60,12 +77,10 @@ class PipelineLogger:
                 if not fname.endswith(".log"):
                     continue
                 file_path = os.path.join(log_dir, fname)
-                # Keep active files of current session
                 if file_path in (self.err_file, self.fn_file, self.quota_file):
                     continue
 
                 try:
-                    # 1. Attempt to parse timestamp from filename (e.g. error_2026-10-29_14-05-47.log)
                     match = re.search(r"(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})", fname)
                     if match:
                         file_dt = datetime.strptime(match.group(1), "%Y-%m-%d_%H-%M-%S")
@@ -75,6 +90,39 @@ class PipelineLogger:
 
                     if age_sec > max_age_seconds:
                         os.remove(file_path)
+                except Exception:
+                    pass
+
+        # Step 2: Size-based purge (max_size_mb)
+        all_logs = []
+        for log_dir in [self.err_dir, self.fn_dir, self.quota_dir]:
+            if not os.path.isdir(log_dir):
+                continue
+            for fname in os.listdir(log_dir):
+                if not fname.endswith(".log"):
+                    continue
+                file_path = os.path.join(log_dir, fname)
+                try:
+                    size = os.path.getsize(file_path)
+                    mtime = os.path.getmtime(file_path)
+                    all_logs.append((file_path, size, mtime))
+                except Exception:
+                    pass
+
+        total_bytes = sum(item[1] for item in all_logs)
+        max_bytes = max_size_mb * 1024 * 1024
+
+        if total_bytes > max_bytes:
+            # Sort oldest first so older logs are deleted first
+            all_logs.sort(key=lambda x: x[2])
+            for file_path, size, _ in all_logs:
+                if file_path in (self.err_file, self.fn_file, self.quota_file):
+                    continue
+                try:
+                    os.remove(file_path)
+                    total_bytes -= size
+                    if total_bytes <= max_bytes:
+                        break
                 except Exception:
                     pass
 

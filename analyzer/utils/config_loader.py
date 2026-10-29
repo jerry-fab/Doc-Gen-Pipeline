@@ -53,10 +53,17 @@ class ScannerConfig(BaseModel):
     )
 
 
+class LoggingConfig(BaseModel):
+    """Configuration for log management and retention."""
+    max_age_hours: float = Field(1.0, description="Maximum retention time for log files in hours")
+    max_size_mb: float = Field(10.0, description="Maximum combined size for log directories in MB")
+
+
 class AppConfig(BaseModel):
     """Root configuration model representing config.json with deployment_mode."""
     deployment_mode: str = Field("local", description="Deployment mode: 'local' or 'production'")
     profiles: Dict[str, ProfileConfig] = Field(default_factory=dict, description="Configured environment profiles")
+    logging: LoggingConfig = Field(default_factory=LoggingConfig)
     generator: GeneratorConfig = Field(default_factory=GeneratorConfig)
     scanner: ScannerConfig = Field(default_factory=ScannerConfig)
 
