@@ -1,6 +1,6 @@
 # Class: `DocumentationGenerator`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/doc_generator.py`](../../analyzer/doc_generator.py#L19-L174) | **Lines**: `19 - 174`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer\doc_generator.py`](../../analyzer\doc_generator.py#L19-L174) | **Lines**: `19 - 174`
 
 ---
 
@@ -68,7 +68,7 @@ Employs Dependency Injection via constructor parameters to decouple implementati
 
 ## 6. Verifiable Code Citations
 
-- Lines 19-174: Declares `DocumentationGenerator` in `analyzer/doc_generator.py`.
+- Lines 19-174: Declares `DocumentationGenerator` in `analyzer\doc_generator.py`.
 - Lines 24-33: Constructor initialization.
 - Lines 35-110: Defines method `generate_class_doc`.
 - Lines 112-142: Defines method `_build_mermaid_diagram`.

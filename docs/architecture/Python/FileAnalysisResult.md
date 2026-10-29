@@ -1,6 +1,6 @@
 # Class: `FileAnalysisResult`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/models/schemas.py`](../../analyzer/models/schemas.py#L61-L65) | **Lines**: `61 - 65`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer\models\schemas.py`](../../analyzer\models\schemas.py#L61-L65) | **Lines**: `61 - 65`
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 61-65: Declares `FileAnalysisResult` in `analyzer/models/schemas.py`.
+- Lines 61-65: Declares `FileAnalysisResult` in `analyzer\models\schemas.py`.
 
 ---
 

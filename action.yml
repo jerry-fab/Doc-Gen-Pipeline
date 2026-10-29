@@ -61,6 +61,12 @@ runs:
         MISTRAL_API_KEY: ${{ env.MISTRAL_API_KEY }}
         ANTHROPIC_API_KEY: ${{ env.ANTHROPIC_API_KEY }}
       run: |
+        echo "=================================================================="
+        echo " [ACTION STARTED] Triggered for commit $(git rev-parse --short HEAD)"
+        echo " Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo " Branch: ${{ github.ref_name }}"
+        echo "=================================================================="
+
         # If target repo doesn't have a config.json, copy default from action
         if [ ! -f "config.json" ]; then
           cp ${{ github.action_path }}/config.json ./config.json
@@ -68,6 +74,16 @@ runs:
         
         # Run incremental analyzer on changed files
         python ${{ github.action_path }}/analyzer/main.py --diff --output-dir "${{ inputs.output_dir }}"
+
+        echo "=================================================================="
+        echo " [ACTION COMPLETED] Documentation process finished"
+        echo " Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "=================================================================="
+
+        # Output to GitHub Actions Step Summary for immediate web visibility
+        if [ -f "${{ inputs.output_dir }}/PIPELINE_STATUS.md" ] && [ -n "$GITHUB_STEP_SUMMARY" ]; then
+          cat "${{ inputs.output_dir }}/PIPELINE_STATUS.md" >> "$GITHUB_STEP_SUMMARY"
+        fi
 
     # 4. Safely commit and push updated docs to the target repository
     - name: Commit & Push Documentation

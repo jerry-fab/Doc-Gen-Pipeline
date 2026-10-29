@@ -1,6 +1,6 @@
 # Class: `GeneratorConfig`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/utils/config_loader.py`](../../analyzer/utils/config_loader.py#L31-L35) | **Lines**: `31 - 35`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L31-L35) | **Lines**: `31 - 35`
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 31-35: Declares `GeneratorConfig` in `analyzer/utils/config_loader.py`.
+- Lines 31-35: Declares `GeneratorConfig` in `analyzer\utils\config_loader.py`.
 
 ---
 

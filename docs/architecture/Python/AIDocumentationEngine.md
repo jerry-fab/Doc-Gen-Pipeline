@@ -1,6 +1,6 @@
 # Class: `AIDocumentationEngine`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/ai_engine.py`](../../analyzer/ai_engine.py#L26-L276) | **Lines**: `26 - 276`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer\ai_engine.py`](../../analyzer\ai_engine.py#L26-L276) | **Lines**: `26 - 276`
 
 ---
 
@@ -68,7 +68,7 @@ Employs Dependency Injection via constructor parameters to decouple implementati
 
 ## 6. Verifiable Code Citations
 
-- Lines 26-276: Declares `AIDocumentationEngine` in `analyzer/ai_engine.py`.
+- Lines 26-276: Declares `AIDocumentationEngine` in `analyzer\ai_engine.py`.
 - Lines 31-47: Constructor initialization.
 - Lines 49-110: Defines method `explain_class`.
 - Lines 112-143: Defines method `_build_prompt`.

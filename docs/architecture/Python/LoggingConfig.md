@@ -1,6 +1,6 @@
 # Class: `LoggingConfig`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/utils/config_loader.py`](../../analyzer/utils/config_loader.py#L56-L59) | **Lines**: `56 - 59`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L56-L59) | **Lines**: `56 - 59`
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 56-59: Declares `LoggingConfig` in `analyzer/utils/config_loader.py`.
+- Lines 56-59: Declares `LoggingConfig` in `analyzer\utils\config_loader.py`.
 
 ---
 

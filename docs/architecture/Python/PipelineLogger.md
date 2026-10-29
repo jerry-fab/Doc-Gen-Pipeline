@@ -1,6 +1,6 @@
 # Class: `PipelineLogger`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/utils/logger.py`](../../analyzer/utils/logger.py#L19-L182) | **Lines**: `19 - 182`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer\utils\logger.py`](../../analyzer\utils\logger.py#L19-L182) | **Lines**: `19 - 182`
 
 ---
 
@@ -69,7 +69,7 @@ Employs Dependency Injection via constructor parameters to decouple implementati
 
 ## 6. Verifiable Code Citations
 
-- Lines 19-182: Declares `PipelineLogger` in `analyzer/utils/logger.py`.
+- Lines 19-182: Declares `PipelineLogger` in `analyzer\utils\logger.py`.
 - Lines 25-48: Constructor initialization.
 - Lines 50-127: Defines method `cleanup_old_logs`.
 - Lines 129-144: Defines method `_setup_logger`.

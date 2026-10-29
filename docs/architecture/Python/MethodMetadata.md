@@ -1,6 +1,6 @@
 # Class: `MethodMetadata`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/models/schemas.py`](../../analyzer/models/schemas.py#L20-L30) | **Lines**: `20 - 30`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer\models\schemas.py`](../../analyzer\models\schemas.py#L20-L30) | **Lines**: `20 - 30`
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 20-30: Declares `MethodMetadata` in `analyzer/models/schemas.py`.
+- Lines 20-30: Declares `MethodMetadata` in `analyzer\models\schemas.py`.
 
 ---
 

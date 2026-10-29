@@ -1,6 +1,6 @@
 # Class: `ClassExplanation`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/models/schemas.py`](../../analyzer/models/schemas.py#L48-L58) | **Lines**: `48 - 58`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer\models\schemas.py`](../../analyzer\models\schemas.py#L48-L58) | **Lines**: `48 - 58`
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 48-58: Declares `ClassExplanation` in `analyzer/models/schemas.py`.
+- Lines 48-58: Declares `ClassExplanation` in `analyzer\models\schemas.py`.
 
 ---
 
