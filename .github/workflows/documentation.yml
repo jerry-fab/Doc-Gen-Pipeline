@@ -45,4 +45,3 @@ jobs:
         with:
           output_dir: 'docs'
           commit_message: 'docs: auto-update class architecture documentation [skip ci]'
-          api_key: ${{ secrets.LLM_API_KEY || secrets.GEMINI_API_KEY }}
