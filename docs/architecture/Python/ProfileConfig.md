@@ -1,6 +1,6 @@
 # Class: `ProfileConfig`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L15-L24) | **Lines**: `15 - 24`
+> **Language**: `PYTHON` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L16-L25) | **Lines**: `16 - 25`
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 15-24: Declares `ProfileConfig` in `analyzer\utils\config_loader.py`.
+- Lines 16-25: Declares `ProfileConfig` in `analyzer\utils\config_loader.py`.
 
 ---
 

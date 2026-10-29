@@ -1,6 +1,6 @@
 # Class: `AppConfig`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L49-L71) | **Lines**: `49 - 71`
+> **Language**: `PYTHON` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L50-L69) | **Lines**: `50 - 69`
 
 ---
 
@@ -9,7 +9,7 @@
 ```mermaid
 classDiagram
     class AppConfig {
-        +get_profile(Optional[str] env_override) ProfileConfig
+        +get_active_profile() ProfileConfig
     }
     BaseModel <|-- AppConfig : inherits
 ```
@@ -18,7 +18,7 @@ classDiagram
 
 ## 2. Overview & Purpose
 
-Root configuration model representing config.json with multi-env profile support.
+Root configuration model representing config.json with deployment_mode.
 
 ### Why this class exists (Design Rationale)
 Implements inheritance/interface contract from `BaseModel` ensuring substitutability and polymorphism.
@@ -27,7 +27,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 3. Key Responsibilities
 
-- Provides operation `get_profile`.
+- Provides operation `get_active_profile`.
 
 ---
 
@@ -35,20 +35,17 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
-| **`get_profile`** | `self: Any`, `env_override: Optional[str]` | `ProfileConfig` | L56-L71 | Retrieves the profile for the target environment.
+| **`get_active_profile`** | `self: Any` | `ProfileConfig` | L57-L69 | Retrieves the profile directly designated by the `deployment_mode` in config.json.
         
-        Args:
-            env_override: Optional CLI override ('local' or 'production').
-            
         Returns:
-            ProfileConfig instance for the requested or active environment. |
+            ProfileConfig instance for 'local' or 'production'. |
 
 ---
 
 ## 6. Verifiable Code Citations
 
-- Lines 49-71: Declares `AppConfig` in `analyzer\utils\config_loader.py`.
-- Lines 56-71: Defines method `get_profile`.
+- Lines 50-69: Declares `AppConfig` in `analyzer\utils\config_loader.py`.
+- Lines 57-69: Defines method `get_active_profile`.
 
 ---
 

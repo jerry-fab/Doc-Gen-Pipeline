@@ -1,5 +1,5 @@
 {
-  "active_profile": "local",
+  "deployment_mode": "local",
   "profiles": {
     "local": {
       "provider": "gemini",

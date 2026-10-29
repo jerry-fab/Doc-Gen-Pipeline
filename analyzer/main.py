@@ -5,16 +5,15 @@ analyzer.main
 Command-Line Interface (CLI) and Orchestrator for the Code Documentation Pipeline.
 
 Features:
-    - Multi-Environment Support: Toggle between 'local' (Gemini/Groq) and 'production' (Mistral/Claude) via `--env`.
-    - Reads centralized settings from `config.json`.
+    - Guided by `config.json`'s `"deployment_mode"` ('local' or 'production').
     - Incremental Scanning: Analyzes only files modified in the latest Git commit (`--diff`).
     - Full Workspace Scanning: Recursively scans and parses all supported languages (`--all`).
     - Targeted Scanning: Inspects an individual file or directory (`--path <path>`).
     - Automated Catalog Updates: Maintains the central `docs/README.md` index.
 
 Usage:
-    python analyzer/main.py --all --env local
-    python analyzer/main.py --diff --env production
+    python analyzer/main.py --all
+    python analyzer/main.py --diff
     python analyzer/main.py --path tests/sample_code/OrderService.cs
 """
 
@@ -41,16 +40,12 @@ def main():
     """CLI Entry point for executing the automated documentation workflow."""
     # 1. Load centralized configuration from config.json
     config = load_config()
+    active_profile = config.get_active_profile()
+
+    print(f"[*] Deployment Mode: '{config.deployment_mode.upper()}' | Provider: '{active_profile.provider}' | Model: '{active_profile.model}'")
 
     cli_parser = argparse.ArgumentParser(
         description="Automated Multi-Language Code Documentation Engine"
-    )
-    cli_parser.add_argument(
-        "--env",
-        type=str,
-        default=config.active_profile,
-        choices=["local", "production"],
-        help=f"Target environment profile (default from config.json: '{config.active_profile}')"
     )
     cli_parser.add_argument(
         "--diff",
@@ -76,10 +71,6 @@ def main():
     )
 
     args = cli_parser.parse_args()
-
-    # Determine profile
-    active_profile = config.get_profile(args.env)
-    print(f"[*] Active Environment: '{args.env.upper()}' | Provider: '{active_profile.provider}' | Model: '{active_profile.model}'")
 
     # Determine list of files to process
     target_files = []

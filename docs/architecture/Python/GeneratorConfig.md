@@ -1,6 +1,6 @@
 # Class: `GeneratorConfig`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L27-L31) | **Lines**: `27 - 31`
+> **Language**: `PYTHON` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L28-L32) | **Lines**: `28 - 32`
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 27-31: Declares `GeneratorConfig` in `analyzer\utils\config_loader.py`.
+- Lines 28-32: Declares `GeneratorConfig` in `analyzer\utils\config_loader.py`.
 
 ---
 

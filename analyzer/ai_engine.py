@@ -21,16 +21,15 @@ class AIDocumentationEngine:
     Coordinates semantic analysis and documentation synthesis based on the active profile.
     """
 
-    def __init__(self, profile: Optional[ProfileConfig] = None, env_name: Optional[str] = None):
+    def __init__(self, profile: Optional[ProfileConfig] = None):
         """
-        Initializes API credentials and endpoints from the chosen profile.
+        Initializes API credentials and endpoints from the chosen profile or config.json's deployment_mode.
         
         Args:
-            profile: Explicit ProfileConfig. If None, loads from config.json.
-            env_name: Optional environment name ('local' or 'production') to select from config.json.
+            profile: Optional explicit ProfileConfig. If None, loads from config.json.
         """
         app_config = load_config()
-        self.profile = profile or app_config.get_profile(env_name)
+        self.profile = profile or app_config.get_active_profile()
         self.provider = self.profile.provider.lower()
         self.api_key = self.profile.api_key.strip() if self.profile.api_key else ""
         self.api_base = self.profile.api_base.rstrip("/")

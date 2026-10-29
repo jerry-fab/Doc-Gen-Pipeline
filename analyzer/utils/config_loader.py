@@ -2,8 +2,9 @@
 analyzer.utils.config_loader
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Loads and validates multi-environment settings (local vs production) from `config.json`.
-Eliminates dependency on environment variables.
+Loads and validates settings from `config.json`.
+Uses the explicit `"deployment_mode"` setting ('local' or 'production')
+to select the corresponding profile.
 """
 
 import os
@@ -47,27 +48,24 @@ class ScannerConfig(BaseModel):
 
 
 class AppConfig(BaseModel):
-    """Root configuration model representing config.json with multi-env profile support."""
-    active_profile: str = Field("local", description="Current active profile name ('local' or 'production')")
+    """Root configuration model representing config.json with deployment_mode."""
+    deployment_mode: str = Field("local", description="Deployment mode: 'local' or 'production'")
     profiles: Dict[str, ProfileConfig] = Field(default_factory=dict, description="Configured environment profiles")
     generator: GeneratorConfig = Field(default_factory=GeneratorConfig)
     scanner: ScannerConfig = Field(default_factory=ScannerConfig)
 
-    def get_profile(self, env_override: Optional[str] = None) -> ProfileConfig:
+    def get_active_profile(self) -> ProfileConfig:
         """
-        Retrieves the profile for the target environment.
+        Retrieves the profile directly designated by the `deployment_mode` in config.json.
         
-        Args:
-            env_override: Optional CLI override ('local' or 'production').
-            
         Returns:
-            ProfileConfig instance for the requested or active environment.
+            ProfileConfig instance for 'local' or 'production'.
         """
-        env_name = (env_override or self.active_profile).lower()
-        if env_name in self.profiles:
-            return self.profiles[env_name]
+        mode = self.deployment_mode.lower().strip()
+        if mode in self.profiles:
+            return self.profiles[mode]
         
-        # Fallback profile if profile key is missing
+        # Fallback profile if key not matched
         return ProfileConfig()
 
 

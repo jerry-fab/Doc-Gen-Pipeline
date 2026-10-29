@@ -1,6 +1,6 @@
 # Class: `ScannerConfig`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L34-L46) | **Lines**: `34 - 46`
+> **Language**: `PYTHON` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L35-L47) | **Lines**: `35 - 47`
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 34-46: Declares `ScannerConfig` in `analyzer\utils\config_loader.py`.
+- Lines 35-47: Declares `ScannerConfig` in `analyzer\utils\config_loader.py`.
 
 ---
 
