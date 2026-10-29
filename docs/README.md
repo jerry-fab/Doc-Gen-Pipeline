@@ -10,16 +10,8 @@ This directory contains auto-generated architectural and functional documentatio
 
 | Class Name | Documentation Link |
 | :--- | :--- |
-| **`AIDocumentationEngine`** | [View Documentation](architecture/Python/AIDocumentationEngine.md) |
 | **`AppConfig`** | [View Documentation](architecture/Python/AppConfig.md) |
-| **`ClassExplanation`** | [View Documentation](architecture/Python/ClassExplanation.md) |
-| **`ClassMetadata`** | [View Documentation](architecture/Python/ClassMetadata.md) |
-| **`DocumentationGenerator`** | [View Documentation](architecture/Python/DocumentationGenerator.md) |
-| **`FileAnalysisResult`** | [View Documentation](architecture/Python/FileAnalysisResult.md) |
 | **`GeneratorConfig`** | [View Documentation](architecture/Python/GeneratorConfig.md) |
-| **`MethodMetadata`** | [View Documentation](architecture/Python/MethodMetadata.md) |
-| **`ParameterMetadata`** | [View Documentation](architecture/Python/ParameterMetadata.md) |
-| **`PipelineLogger`** | [View Documentation](architecture/Python/PipelineLogger.md) |
 | **`ProfileConfig`** | [View Documentation](architecture/Python/ProfileConfig.md) |
 | **`ScannerConfig`** | [View Documentation](architecture/Python/ScannerConfig.md) |
 
