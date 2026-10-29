@@ -1,6 +1,6 @@
 # Class: `AppConfig`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/utils/config_loader.py`](../../analyzer/utils/config_loader.py#L56-L100) | **Lines**: `56 - 100`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/utils/config_loader.py`](../../analyzer/utils/config_loader.py#L62-L107) | **Lines**: `62 - 107`
 
 ---
 
@@ -35,7 +35,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
-| **`get_active_profile`** | `self: Any` | `ProfileConfig` | L63-L100 | Retrieves the profile directly designated by the `deployment_mode` in config.json.
+| **`get_active_profile`** | `self: Any` | `ProfileConfig` | L70-L107 | Retrieves the profile directly designated by the `deployment_mode` in config.json.
         
         Returns:
             ProfileConfig instance for 'local' or 'production'. |
@@ -44,8 +44,8 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 56-100: Declares `AppConfig` in `analyzer/utils/config_loader.py`.
-- Lines 63-100: Defines method `get_active_profile`.
+- Lines 62-107: Declares `AppConfig` in `analyzer/utils/config_loader.py`.
+- Lines 70-107: Defines method `get_active_profile`.
 
 ---
 

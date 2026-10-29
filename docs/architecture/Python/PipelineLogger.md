@@ -1,6 +1,6 @@
 # Class: `PipelineLogger`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/utils/logger.py`](../../analyzer/utils/logger.py#L19-L134) | **Lines**: `19 - 134`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/utils/logger.py`](../../analyzer/utils/logger.py#L19-L182) | **Lines**: `19 - 182`
 
 ---
 
@@ -10,7 +10,7 @@
 classDiagram
     class PipelineLogger {
         +__init__(str base_log_dir) Any
-        +cleanup_old_logs(int max_age_seconds) Any
+        +cleanup_old_logs(Optional[int] max_age_seconds, Optional[float] max_size_mb) Any
         +_setup_logger(str name, str log_file, int level) logging.Logger
         +log_fn(str message) Any
         +log_error(str message, Optional[Exception] exc) Any
@@ -47,14 +47,16 @@ Employs Dependency Injection via constructor parameters to decouple implementati
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
 | **`__init__`** | `self: Any`, `base_log_dir: str` | `Any` | L25-L48 | Executes method logic. |
-| **`cleanup_old_logs`** | `self: Any`, `max_age_seconds: int` | `Any` | L50-L79 | Maintains only the logs generated within the last 1 hour (max_age_seconds).
-        Automatically removes older log files across err_log, fn_log, and quota_complete_log. |
-| **`_setup_logger`** | `self: Any`, `name: str`, `log_file: str`, `level: int` | `logging.Logger` | L81-L96 | Executes `_setup_logger` accepting 4 parameter(s) and returning `logging.Logger`. |
-| **`log_fn`** | `self: Any`, `message: str` | `Any` | L99-L101 | Records normal lifecycle operational events. |
-| **`log_error`** | `self: Any`, `message: str`, `exc: Optional[Exception]` | `Any` | L104-L109 | Records runtime exceptions and failures. |
-| **`log_quota_exhausted`** | `self: Any`, `provider: str`, `model: str`, `class_name: str`, `error_details: str` | `Any` | L112-L122 | Records when API quota is exhausted (429 / resource exhausted)
+| **`cleanup_old_logs`** | `self: Any`, `max_age_seconds: Optional[int]`, `max_size_mb: Optional[float]` | `Any` | L50-L127 | Maintains logs within configured age and total storage size.
+        1. Age-based: Purges log files older than max_age_seconds (default 1 hour / config.json).
+        2. Size-based: If combined size of all log files exceeds max_size_mb (config.json),
+           purges oldest log files automatically until under the threshold. |
+| **`_setup_logger`** | `self: Any`, `name: str`, `log_file: str`, `level: int` | `logging.Logger` | L129-L144 | Executes `_setup_logger` accepting 4 parameter(s) and returning `logging.Logger`. |
+| **`log_fn`** | `self: Any`, `message: str` | `Any` | L147-L149 | Records normal lifecycle operational events. |
+| **`log_error`** | `self: Any`, `message: str`, `exc: Optional[Exception]` | `Any` | L152-L157 | Records runtime exceptions and failures. |
+| **`log_quota_exhausted`** | `self: Any`, `provider: str`, `model: str`, `class_name: str`, `error_details: str` | `Any` | L160-L170 | Records when API quota is exhausted (429 / resource exhausted)
         and documents the automatic switch to the Heuristic Engine. |
-| **`log_engine_used`** | `self: Any`, `class_name: str`, `engine_name: str`, `fallback_reason: Optional[str]` | `Any` | L125-L134 | Records the specific engine (GEMINI, CLAUDE, MISTRAL, or GROUNDED_HEURISTIC)
+| **`log_engine_used`** | `self: Any`, `class_name: str`, `engine_name: str`, `fallback_reason: Optional[str]` | `Any` | L173-L182 | Records the specific engine (GEMINI, CLAUDE, MISTRAL, or GROUNDED_HEURISTIC)
         used to generate documentation for a given class. |
 
 ---
@@ -67,14 +69,14 @@ Employs Dependency Injection via constructor parameters to decouple implementati
 
 ## 6. Verifiable Code Citations
 
-- Lines 19-134: Declares `PipelineLogger` in `analyzer/utils/logger.py`.
+- Lines 19-182: Declares `PipelineLogger` in `analyzer/utils/logger.py`.
 - Lines 25-48: Constructor initialization.
-- Lines 50-79: Defines method `cleanup_old_logs`.
-- Lines 81-96: Defines method `_setup_logger`.
-- Lines 99-101: Defines method `log_fn`.
-- Lines 104-109: Defines method `log_error`.
-- Lines 112-122: Defines method `log_quota_exhausted`.
-- Lines 125-134: Defines method `log_engine_used`.
+- Lines 50-127: Defines method `cleanup_old_logs`.
+- Lines 129-144: Defines method `_setup_logger`.
+- Lines 147-149: Defines method `log_fn`.
+- Lines 152-157: Defines method `log_error`.
+- Lines 160-170: Defines method `log_quota_exhausted`.
+- Lines 173-182: Defines method `log_engine_used`.
 
 ---
 

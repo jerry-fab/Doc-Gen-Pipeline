@@ -10,7 +10,12 @@ This directory contains auto-generated architectural and functional documentatio
 
 | Class Name | Documentation Link |
 | :--- | :--- |
+| **`AppConfig`** | [View Documentation](architecture/Python/AppConfig.md) |
+| **`GeneratorConfig`** | [View Documentation](architecture/Python/GeneratorConfig.md) |
+| **`LoggingConfig`** | [View Documentation](architecture/Python/LoggingConfig.md) |
 | **`PipelineLogger`** | [View Documentation](architecture/Python/PipelineLogger.md) |
+| **`ProfileConfig`** | [View Documentation](architecture/Python/ProfileConfig.md) |
+| **`ScannerConfig`** | [View Documentation](architecture/Python/ScannerConfig.md) |
 
 ---
 *Updated automatically via GitHub CI/CD Pipeline.*
