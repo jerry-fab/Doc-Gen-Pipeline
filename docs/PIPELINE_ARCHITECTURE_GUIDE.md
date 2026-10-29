@@ -155,21 +155,38 @@ To prevent disk saturation during high-frequency CI/CD runs, the pipeline featur
 
 ---
 
-### 6.1 Workspace Setup: How to Enable this Action in Any Project
+---
 
-To enable automated architecture documentation in any new or existing target workspace repository (e.g. `Sample-Project-GP`, `Sample-Project-GP-2`), perform the following steps:
+## 6. Setting Up in GitHub Cloud Server vs Local Server
 
-#### Step 1: Create the Workflow File
-In the root of your target workspace repository, create `.github/workflows/documentation.yml` with the following configuration:
+The pipeline can be operated in two distinct environments: **GitHub Cloud-Hosted Runners** and **Local / Self-Hosted Servers**.
+
+### 6.1 Environment Comparison Matrix
+
+| Architectural Parameter | GitHub Cloud Server (Standard) | Local Server / Self-Hosted Runner |
+| :--- | :--- | :--- |
+| **Execution Host** | Ephemeral Ubuntu VM hosted in GitHub cloud (Azure/AWS) | Your local PC, on-premise physical server, or private VM |
+| **Runner Directive** | `runs-on: ubuntu-latest` | `runs-on: self-hosted` (or `[self-hosted, windows]`) |
+| **Network Requirements** | Public internet access to GitHub and Gemini API | Can run behind corporate proxies / intranet / local LLMs |
+| **Setup Overhead** | Zero-setup (automatic runner spinning) | Requires registering self-hosted runner in GitHub settings |
+| **Cost / Limits** | Uses GitHub Actions monthly free/paid minutes | Free (utilizes your local server's existing CPU compute) |
+
+---
+
+## 7. How `documentation.yml` Changes for Cloud vs Local Setup
+
+Depending on the host environment and repository type, the workflow file adapts as follows:
+
+### Scenario A: GitHub Cloud Server (Target Consumer Repositories)
+Used by any consumer repository (e.g. `Sample-Project-GP`, `Sample-Project-GP-2`) running in standard GitHub Cloud:
 
 ```yaml
+# .github/workflows/documentation.yml (Cloud Runner for Target Projects)
 name: Automated Code Documentation Pipeline
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [ main, master ]
     paths-ignore:
       - 'docs/**'
       - 'logs/**'
@@ -182,8 +199,52 @@ permissions:
 
 jobs:
   generate-docs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest    # <-- GITHUB CLOUD HOSTED VM
     name: Execute Code Documentation Action
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Run Documentation Action
+        uses: jerry-fab/Doc-Gen-Pipeline@master    # <-- REFERENCES REMOTE REPO
+        with:
+          output_dir: 'docs'
+          commit_message: 'docs: auto-update class architecture documentation [skip ci]'
+```
+
+---
+
+### Scenario B: GitHub Cloud Server (Action Pipeline Repo Itself)
+Used exclusively inside `jerry-fab/Doc-Gen-Pipeline` to execute its root `action.yml` directly:
+
+```yaml
+# .github/workflows/documentation.yml (Inside Doc-Gen-Pipeline Repo)
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Run Documentation Action
+        uses: ./    # <-- INVOKES LOCAL ROOT action.yml DIRECTLY
+        with:
+          output_dir: 'docs'
+```
+
+---
+
+### Scenario C: Local Server (Self-Hosted GitHub Actions Runner)
+Used when you register your local workstation or company on-premise server as a GitHub Self-Hosted runner:
+
+```yaml
+# .github/workflows/documentation.yml (Self-Hosted Local Server)
+jobs:
+  generate-docs:
+    runs-on: self-hosted    # <-- RUNS LOCALLY ON YOUR ON-PREMISE MACHINE
+    name: Execute Code Documentation on Local Server
 
     steps:
       - name: Checkout Repository
@@ -198,14 +259,35 @@ jobs:
           commit_message: 'docs: auto-update class architecture documentation [skip ci]'
 ```
 
-#### Step 2: Enable GitHub Actions Write Permissions
+---
+
+### Scenario D: Pure Local CLI Execution (Without GitHub Actions)
+If you want to run documentation immediately on your local machine without pushing to GitHub:
+
+```bash
+# In your local project terminal:
+# 1. Analyze only files modified in the latest Git commit:
+python analyzer/main.py --diff --output-dir docs
+
+# 2. Or recursively scan the entire project workspace:
+python analyzer/main.py --all --output-dir docs
+```
+
+---
+
+## 8. Setup Process & Configuration
+
+### Step 1: Create the Workflow File
+In the root of your target workspace repository, create `.github/workflows/documentation.yml` using the appropriate scenario from above (usually Scenario A).
+
+### Step 2: Enable GitHub Actions Write Permissions
 In your target GitHub repository:
 1. Navigate to **Settings** > **Actions** > **General**.
-2. Scroll to **Workflow permissions**.
+2. Scroll down to **Workflow permissions**.
 3. Select **"Read and write permissions"** (allows `github-actions[bot]` to commit docs).
 4. Click **Save**.
 
-#### Step 3: API Key Base64 Obfuscation (Action Configuration)
+### Step 3: API Key Base64 Obfuscation (Action Configuration)
 The pipeline comes pre-configured with zero-configuration execution. However, if you wish to configure a new custom Gemini or LLM API key without triggering GitHub Secret Scanning push-protection blocks, encode the key to Base64 using this command:
 
 ```bash
@@ -214,7 +296,7 @@ python -c "import base64; print(base64.b64encode(b'UNGALODA_PUTHU_KEY').decode()
 
 Paste the resulting Base64 string into `_DEFAULT_ACTION_KEY_B64` in `analyzer/utils/config_loader.py`, or securely pass it as a GitHub Actions repository secret (`LLM_API_KEY`).
 
-#### Step 4: Standard Developer Push & Pull Workflow
+### Step 4: Standard Everyday Developer Lifecycle
 1. Modify or add source code in your workspace (e.g. `src/App.jsx`, `OrderService.cs`, etc.).
 2. Commit and push:
    ```bash
@@ -228,4 +310,5 @@ Paste the resulting Base64 string into `_DEFAULT_ACTION_KEY_B64` in `analyzer/ut
    git pull origin master
    ```
 5. Open `docs/PIPELINE_STATUS.md` to view real-time execution duration and Gemini AI engine confirmation.
+
 
