@@ -10,10 +10,6 @@ This directory contains auto-generated architectural and functional documentatio
 
 | Class Name | Documentation Link |
 | :--- | :--- |
-| **`AppConfig`** | [View Documentation](architecture/Python/AppConfig.md) |
-| **`GeneratorConfig`** | [View Documentation](architecture/Python/GeneratorConfig.md) |
-| **`ProfileConfig`** | [View Documentation](architecture/Python/ProfileConfig.md) |
-| **`ScannerConfig`** | [View Documentation](architecture/Python/ScannerConfig.md) |
 | **`UniversalASTParser`** | [View Documentation](architecture/Python/UniversalASTParser.md) |
 
 ---
