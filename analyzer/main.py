@@ -77,6 +77,11 @@ def main():
         help="Only process files modified in the latest git commit (used in CI/CD)"
     )
     cli_parser.add_argument(
+        "--staged",
+        action="store_true",
+        help="Only process staged files in git index (used in pre-commit hooks)"
+    )
+    cli_parser.add_argument(
         "--path",
         type=str,
         default=None,
@@ -100,10 +105,18 @@ def main():
     target_files = []
     supported_exts = set(config.scanner.supported_extensions)
 
-    if args.diff:
+    if args.staged:
+        print("[Mode] Git Staged diff detection (pre-commit staged index only)")
+        logger.log_fn("Scan Mode: Git Staged Diff (index / cached)")
+        target_files = get_git_diff_files(supported_exts=supported_exts, staged=True)
+        if not target_files:
+            print("[Info] No staged source files (.py, .cs, .java) detected in git index. Skipping doc generation.")
+            logger.log_fn("No staged supported files found in git index.")
+            return
+    elif args.diff:
         print("[Mode] Git Diff detection (incremental modified files only)")
         logger.log_fn("Scan Mode: Incremental Git Diff (HEAD~1 -> HEAD)")
-        target_files = get_git_diff_files(supported_exts=supported_exts)
+        target_files = get_git_diff_files(supported_exts=supported_exts, staged=False)
         if not target_files:
             print("[Info] No modified files detected in latest commit. Scanning workspace as fallback.")
             logger.log_fn("No git diff files found. Scanning workspace fallback.")

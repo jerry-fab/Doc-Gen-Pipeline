@@ -12,18 +12,27 @@ from typing import List, Set
 SUPPORTED_EXTENSIONS: Set[str] = {".py", ".cs", ".java"}
 
 
-def get_git_diff_files(supported_exts: Set[str] = SUPPORTED_EXTENSIONS) -> List[str]:
+def get_git_diff_files(
+    supported_exts: Set[str] = SUPPORTED_EXTENSIONS,
+    staged: bool = False
+) -> List[str]:
     """
-    Retrieves modified or newly added files from the latest git commit (HEAD~1 -> HEAD).
+    Retrieves modified or newly added files from Git.
     
-    Used by GitHub Actions to perform incremental documentation generation without
-    re-processing untouched files in the repository.
+    Args:
+        supported_exts: Set of file extensions to include (.py, .cs, .java, etc.)
+        staged: If True, inspects staged changes in the Git index (used in pre-commit hooks).
+                If False, inspects changes between HEAD~1 and HEAD (used in CI/CD pipelines).
     
     Returns:
-        List of matching relative file paths.
+        List of matching relative file paths that exist on disk.
     """
     try:
-        cmd = ["git", "diff", "--name-only", "HEAD~1", "HEAD"]
+        if staged:
+            cmd = ["git", "diff", "--cached", "--name-only"]
+        else:
+            cmd = ["git", "diff", "--name-only", "HEAD~1", "HEAD"]
+
         output = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL)
         files = [line.strip() for line in output.splitlines() if line.strip()]
         return [
