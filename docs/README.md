@@ -31,10 +31,10 @@ This directory contains auto-generated architectural and functional documentatio
 | **`DocumentationGenerator`** | [View Documentation](architecture/Python/DocumentationGenerator.md) |
 | **`FileAnalysisResult`** | [View Documentation](architecture/Python/FileAnalysisResult.md) |
 | **`GeneratorConfig`** | [View Documentation](architecture/Python/GeneratorConfig.md) |
-| **`LLMConfig`** | [View Documentation](architecture/Python/LLMConfig.md) |
 | **`MethodMetadata`** | [View Documentation](architecture/Python/MethodMetadata.md) |
 | **`OrderManager`** | [View Documentation](architecture/Python/OrderManager.md) |
 | **`ParameterMetadata`** | [View Documentation](architecture/Python/ParameterMetadata.md) |
+| **`ProfileConfig`** | [View Documentation](architecture/Python/ProfileConfig.md) |
 | **`ScannerConfig`** | [View Documentation](architecture/Python/ScannerConfig.md) |
 | **`TestCodeDocumentationPipeline`** | [View Documentation](architecture/Python/TestCodeDocumentationPipeline.md) |
 | **`UniversalASTParser`** | [View Documentation](architecture/Python/UniversalASTParser.md) |

@@ -2,13 +2,10 @@
 analyzer.ai_engine
 ~~~~~~~~~~~~~~~~~~
 
-Grounded AI Explanation Engine for Code Architecture.
-
-Responsibilities:
-    1. Interprets AST structures and source code to explain class purpose and architectural rationale.
-    2. Implements strict anti-hallucination guardrails (only describes directly observable facts).
-    3. Reads settings directly from `config.json` via `analyzer.utils.load_config` (no environment variables required).
-    4. Provides a 100% offline, deterministic heuristic fallback when no LLM API key is enabled in config.json.
+Grounded AI Explanation Engine supporting Multi-Environment Profiles:
+    - Local: Fast/Free tier providers (Google Gemini Flash, Groq).
+    - Production: Enterprise precision providers (Mistral Codestral, Anthropic Claude).
+    - Offline Fallback: Zero-cost deterministic heuristic explainer.
 """
 
 import json
@@ -16,60 +13,54 @@ from typing import Optional
 import requests
 
 from analyzer.models import ClassMetadata, ClassExplanation
-from analyzer.utils import load_config, LLMConfig
+from analyzer.utils import load_config, ProfileConfig
 
 
 class AIDocumentationEngine:
     """
-    Coordinates semantic analysis and documentation synthesis using hosted LLMs or local fallbacks.
-    Reads configuration directly from `config.json`.
+    Coordinates semantic analysis and documentation synthesis based on the active profile.
     """
 
-    def __init__(self, config: Optional[LLMConfig] = None):
+    def __init__(self, profile: Optional[ProfileConfig] = None, env_name: Optional[str] = None):
         """
-        Initializes API credentials and endpoints from config.json.
+        Initializes API credentials and endpoints from the chosen profile.
         
         Args:
-            config: Optional LLMConfig instance. If None, loads from config.json.
+            profile: Explicit ProfileConfig. If None, loads from config.json.
+            env_name: Optional environment name ('local' or 'production') to select from config.json.
         """
         app_config = load_config()
-        self.config = config or app_config.llm
-        self.api_key = self.config.api_key.strip() if self.config.api_key else ""
-        self.api_base = self.config.api_base
-        self.model = self.config.model
-        self.temperature = self.config.temperature
-        self.timeout = self.config.timeout_seconds
-        self.is_enabled = self.config.enabled and bool(self.api_key)
+        self.profile = profile or app_config.get_profile(env_name)
+        self.provider = self.profile.provider.lower()
+        self.api_key = self.profile.api_key.strip() if self.profile.api_key else ""
+        self.api_base = self.profile.api_base.rstrip("/")
+        self.model = self.profile.model
+        self.temperature = self.profile.temperature
+        self.timeout = self.profile.timeout_seconds
+        self.is_enabled = self.profile.enabled and bool(self.api_key)
 
     def explain_class(self, metadata: ClassMetadata) -> ClassExplanation:
         """
         Generates an architectural explanation for a given class.
         
         Strategy:
-            - If LLM is enabled with an API key in config.json: Invokes LLM with strict grounding prompt.
+            - If active profile is enabled with an API key: Calls the configured provider.
             - Otherwise: Executes the fast, deterministic grounded heuristic explainer.
-        
-        Args:
-            metadata: Parsed ClassMetadata from UniversalASTParser.
-            
-        Returns:
-            ClassExplanation object populated with verifiable facts.
         """
         if self.is_enabled:
             try:
-                return self._call_llm(metadata)
+                if "anthropic.com" in self.api_base or self.provider == "claude_native":
+                    return self._call_anthropic_native(metadata)
+                else:
+                    return self._call_openai_compatible(metadata)
             except Exception as exc:
-                print(f"[Warning] LLM API call failed ({exc}). Falling back to grounded heuristic explainer.")
+                print(f"[Warning] {self.provider.upper()} API call failed ({exc}). Falling back to grounded heuristic explainer.")
                 return self._grounded_heuristic_explainer(metadata)
         else:
             return self._grounded_heuristic_explainer(metadata)
 
-    def _call_llm(self, metadata: ClassMetadata) -> ClassExplanation:
-        """
-        Executes an HTTP request to the configured REST endpoint with strict grounding guardrails.
-        """
-        prompt = f"""
-You are a Senior Software Architect and technical documentation specialist.
+    def _build_prompt(self, metadata: ClassMetadata) -> str:
+        return f"""You are a Senior Software Architect and technical documentation specialist.
 Analyze this {metadata.language.upper()} class: `{metadata.name}` from file `{metadata.file_path}` (Lines {metadata.start_line}-{metadata.end_line}).
 
 AST METADATA:
@@ -99,8 +90,11 @@ Respond with strict JSON adhering to this schema:
   "key_methods_explained": {{ "method_name": "What this method does and returns" }},
   "evidence_citations": ["Line X-Y: implements Z", "Line A: delegates to B"],
   "potential_limitations": ["Requires investigation on ...", "No observable error handling for ..."]
-}}
-"""
+}}"""
+
+    def _call_openai_compatible(self, metadata: ClassMetadata) -> ClassExplanation:
+        """Invokes OpenAI-compatible endpoints (Gemini, Groq, Mistral, OpenRouter)."""
+        prompt = self._build_prompt(metadata)
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
@@ -115,28 +109,53 @@ Respond with strict JSON adhering to this schema:
                 {"role": "user", "content": prompt}
             ],
             "temperature": self.temperature,
-            "response_format": {"type": "json_object"} if "gpt" in self.model else None
+            "response_format": {"type": "json_object"} if any(x in self.model for x in ("gpt", "mistral", "codestral")) else None
         }
 
-        response = requests.post(
-            f"{self.api_base}/chat/completions",
-            headers=headers,
-            json=payload,
-            timeout=self.timeout
-        )
+        endpoint = f"{self.api_base}/chat/completions" if not self.api_base.endswith("/chat/completions") else self.api_base
+        response = requests.post(endpoint, headers=headers, json=payload, timeout=self.timeout)
         response.raise_for_status()
         content = response.json()["choices"][0]["message"]["content"]
+        
+        # Clean markdown code block wraps if returned by some providers
+        if content.strip().startswith("```"):
+            lines = content.strip().splitlines()
+            content = "\n".join(lines[1:-1])
+
+        data = json.loads(content)
+        return ClassExplanation(**data)
+
+    def _call_anthropic_native(self, metadata: ClassMetadata) -> ClassExplanation:
+        """Invokes native Anthropic Messages API for Claude."""
+        prompt = self._build_prompt(metadata)
+        headers = {
+            "x-api-key": self.api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json"
+        }
+        payload = {
+            "model": self.model,
+            "max_tokens": 2048,
+            "temperature": self.temperature,
+            "system": "You are a senior software architect who produces grounded, hallucination-free code documentation in JSON.",
+            "messages": [
+                {"role": "user", "content": prompt + "\nOutput strictly valid JSON with no markdown quotes."}
+            ]
+        }
+        endpoint = f"{self.api_base}/messages" if not self.api_base.endswith("/messages") else self.api_base
+        response = requests.post(endpoint, headers=headers, json=payload, timeout=self.timeout)
+        response.raise_for_status()
+        content = response.json()["content"][0]["text"]
+
+        if content.strip().startswith("```"):
+            lines = content.strip().splitlines()
+            content = "\n".join(lines[1:-1])
+
         data = json.loads(content)
         return ClassExplanation(**data)
 
     def _grounded_heuristic_explainer(self, metadata: ClassMetadata) -> ClassExplanation:
-        """
-        Deterministic, rule-based fallback generator.
-        
-        Guarantees that the pipeline operates 100% offline with zero cost, no token limits,
-        and absolute fidelity to the source code without hallucinations.
-        """
-        # 1. Functional Purpose Inference
+        """Deterministic, rule-based fallback generator."""
         doc = metadata.docstring.strip() if metadata.docstring else ""
         if doc:
             purpose = doc.split("\n")[0]
@@ -151,7 +170,6 @@ Respond with strict JSON adhering to this schema:
         else:
             purpose = f"Provides core abstraction and member behaviors for `{metadata.name}`."
 
-        # 2. Design Rationale Inference
         rationale_parts = []
         if metadata.inherits:
             rationale_parts.append(
@@ -167,7 +185,6 @@ Respond with strict JSON adhering to this schema:
             )
         design_rationale = " ".join(rationale_parts)
 
-        # 3. Responsibilities & Line Citations
         responsibilities = []
         key_methods = {}
         citations = [
@@ -185,12 +202,10 @@ Respond with strict JSON adhering to this schema:
                 responsibilities.append(f"Provides operation `{m.name}`.")
                 citations.append(f"Lines {m.start_line}-{m.end_line}: Defines method `{m.name}`.")
 
-        # 4. Dependency Roles
         deps_explained = {}
         for d in metadata.dependencies:
             deps_explained[d] = "Injected collaborator utilized for delegating specialized operations."
 
-        # 5. Known Boundaries & Limitations
         limitations = [
             f"End-to-end integration requires inspecting classes calling or referenced by `{metadata.name}`.",
             "Underlying data persistence and network latency characteristics depend on external runtime configuration."

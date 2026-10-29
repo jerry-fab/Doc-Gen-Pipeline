@@ -1,6 +1,6 @@
 # Class: `AppConfig`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L47-L51) | **Lines**: `47 - 51`
+> **Language**: `PYTHON` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L49-L71) | **Lines**: `49 - 71`
 
 ---
 
@@ -9,6 +9,7 @@
 ```mermaid
 classDiagram
     class AppConfig {
+        +get_profile(Optional[str] env_override) ProfileConfig
     }
     BaseModel <|-- AppConfig : inherits
 ```
@@ -17,7 +18,7 @@ classDiagram
 
 ## 2. Overview & Purpose
 
-Root configuration model representing config.json.
+Root configuration model representing config.json with multi-env profile support.
 
 ### Why this class exists (Design Rationale)
 Implements inheritance/interface contract from `BaseModel` ensuring substitutability and polymorphism.
@@ -26,6 +27,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 3. Key Responsibilities
 
+- Provides operation `get_profile`.
 
 ---
 
@@ -33,12 +35,20 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
+| **`get_profile`** | `self: Any`, `env_override: Optional[str]` | `ProfileConfig` | L56-L71 | Retrieves the profile for the target environment.
+        
+        Args:
+            env_override: Optional CLI override ('local' or 'production').
+            
+        Returns:
+            ProfileConfig instance for the requested or active environment. |
 
 ---
 
 ## 6. Verifiable Code Citations
 
-- Lines 47-51: Declares `AppConfig` in `analyzer\utils\config_loader.py`.
+- Lines 49-71: Declares `AppConfig` in `analyzer\utils\config_loader.py`.
+- Lines 56-71: Defines method `get_profile`.
 
 ---
 

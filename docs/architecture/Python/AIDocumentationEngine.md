@@ -1,6 +1,6 @@
 # Class: `AIDocumentationEngine`
 
-> **Language**: `PYTHON` | **Source**: [`analyzer\ai_engine.py`](../../analyzer\ai_engine.py#L22-L208) | **Lines**: `22 - 208`
+> **Language**: `PYTHON` | **Source**: [`analyzer\ai_engine.py`](../../analyzer\ai_engine.py#L19-L223) | **Lines**: `19 - 223`
 
 ---
 
@@ -9,19 +9,22 @@
 ```mermaid
 classDiagram
     class AIDocumentationEngine {
-        +__init__(Optional[LLMConfig] config) Any
+        +__init__(Optional[ProfileConfig] profile, Optional[str] env_name) Any
         +explain_class(ClassMetadata metadata) ClassExplanation
-        +_call_llm(ClassMetadata metadata) ClassExplanation
+        +_build_prompt(ClassMetadata metadata) str
+        +_call_openai_compatible(ClassMetadata metadata) ClassExplanation
+        +_call_anthropic_native(ClassMetadata metadata) ClassExplanation
         +_grounded_heuristic_explainer(ClassMetadata metadata) ClassExplanation
     }
-    AIDocumentationEngine ..> Optional[LLMConfig] : depends on
+    AIDocumentationEngine ..> Optional[ProfileConfig] : depends on
+    AIDocumentationEngine ..> Optional[str] : depends on
 ```
 
 ---
 
 ## 2. Overview & Purpose
 
-Coordinates semantic analysis and documentation synthesis using hosted LLMs or local fallbacks.
+Coordinates semantic analysis and documentation synthesis based on the active profile.
 
 ### Why this class exists (Design Rationale)
 Employs Dependency Injection via constructor parameters to decouple implementations from caller code.
@@ -30,9 +33,11 @@ Employs Dependency Injection via constructor parameters to decouple implementati
 
 ## 3. Key Responsibilities
 
-- Initializes instance dependencies: config.
+- Initializes instance dependencies: profile, env_name.
 - Provides operation `explain_class`.
-- Provides operation `_call_llm`.
+- Provides operation `_build_prompt`.
+- Provides operation `_call_openai_compatible`.
+- Provides operation `_call_anthropic_native`.
 - Provides operation `_grounded_heuristic_explainer`.
 
 ---
@@ -41,42 +46,39 @@ Employs Dependency Injection via constructor parameters to decouple implementati
 
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
-| **`__init__`** | `self: Any`, `config: Optional[LLMConfig]` | `Any` | L28-L42 | Initializes API credentials and endpoints from config.json.
+| **`__init__`** | `self: Any`, `profile: Optional[ProfileConfig]`, `env_name: Optional[str]` | `Any` | L24-L40 | Initializes API credentials and endpoints from the chosen profile.
         
         Args:
-            config: Optional LLMConfig instance. If None, loads from config.json. |
-| **`explain_class`** | `self: Any`, `metadata: ClassMetadata` | `ClassExplanation` | L44-L65 | Generates an architectural explanation for a given class.
+            profile: Explicit ProfileConfig. If None, loads from config.json.
+            env_name: Optional environment name ('local' or 'production') to select from config.json. |
+| **`explain_class`** | `self: Any`, `metadata: ClassMetadata` | `ClassExplanation` | L42-L60 | Generates an architectural explanation for a given class.
         
         Strategy:
-            - If LLM is enabled with an API key in config.json: Invokes LLM with strict grounding prompt.
-            - Otherwise: Executes the fast, deterministic grounded heuristic explainer.
-        
-        Args:
-            metadata: Parsed ClassMetadata from UniversalASTParser.
-            
-        Returns:
-            ClassExplanation object populated with verifiable facts. |
-| **`_call_llm`** | `self: Any`, `metadata: ClassMetadata` | `ClassExplanation` | L67-L130 | Executes an HTTP request to the configured REST endpoint with strict grounding guardrails. |
-| **`_grounded_heuristic_explainer`** | `self: Any`, `metadata: ClassMetadata` | `ClassExplanation` | L132-L208 | Deterministic, rule-based fallback generator.
-        
-        Guarantees that the pipeline operates 100% offline with zero cost, no token limits,
-        and absolute fidelity to the source code without hallucinations. |
+            - If active profile is enabled with an API key: Calls the configured provider.
+            - Otherwise: Executes the fast, deterministic grounded heuristic explainer. |
+| **`_build_prompt`** | `self: Any`, `metadata: ClassMetadata` | `str` | L62-L93 | Executes `_build_prompt` accepting 2 parameter(s) and returning `str`. |
+| **`_call_openai_compatible`** | `self: Any`, `metadata: ClassMetadata` | `ClassExplanation` | L95-L126 | Invokes OpenAI-compatible endpoints (Gemini, Groq, Mistral, OpenRouter). |
+| **`_call_anthropic_native`** | `self: Any`, `metadata: ClassMetadata` | `ClassExplanation` | L128-L155 | Invokes native Anthropic Messages API for Claude. |
+| **`_grounded_heuristic_explainer`** | `self: Any`, `metadata: ClassMetadata` | `ClassExplanation` | L157-L223 | Deterministic, rule-based fallback generator. |
 
 ---
 
 ## 5. Injected Dependencies & Collaborators
 
-- **`config: Optional[LLMConfig]`**: Injected collaborator utilized for delegating specialized operations.
+- **`profile: Optional[ProfileConfig]`**: Injected collaborator utilized for delegating specialized operations.
+- **`env_name: Optional[str]`**: Injected collaborator utilized for delegating specialized operations.
 
 ---
 
 ## 6. Verifiable Code Citations
 
-- Lines 22-208: Declares `AIDocumentationEngine` in `analyzer\ai_engine.py`.
-- Lines 28-42: Constructor initialization.
-- Lines 44-65: Defines method `explain_class`.
-- Lines 67-130: Defines method `_call_llm`.
-- Lines 132-208: Defines method `_grounded_heuristic_explainer`.
+- Lines 19-223: Declares `AIDocumentationEngine` in `analyzer\ai_engine.py`.
+- Lines 24-40: Constructor initialization.
+- Lines 42-60: Defines method `explain_class`.
+- Lines 62-93: Defines method `_build_prompt`.
+- Lines 95-126: Defines method `_call_openai_compatible`.
+- Lines 128-155: Defines method `_call_anthropic_native`.
+- Lines 157-223: Defines method `_grounded_heuristic_explainer`.
 
 ---
 

@@ -5,6 +5,7 @@ analyzer.main
 Command-Line Interface (CLI) and Orchestrator for the Code Documentation Pipeline.
 
 Features:
+    - Multi-Environment Support: Toggle between 'local' (Gemini/Groq) and 'production' (Mistral/Claude) via `--env`.
     - Reads centralized settings from `config.json`.
     - Incremental Scanning: Analyzes only files modified in the latest Git commit (`--diff`).
     - Full Workspace Scanning: Recursively scans and parses all supported languages (`--all`).
@@ -12,8 +13,8 @@ Features:
     - Automated Catalog Updates: Maintains the central `docs/README.md` index.
 
 Usage:
-    python analyzer/main.py --all
-    python analyzer/main.py --diff
+    python analyzer/main.py --all --env local
+    python analyzer/main.py --diff --env production
     python analyzer/main.py --path tests/sample_code/OrderService.cs
 """
 
@@ -45,6 +46,13 @@ def main():
         description="Automated Multi-Language Code Documentation Engine"
     )
     cli_parser.add_argument(
+        "--env",
+        type=str,
+        default=config.active_profile,
+        choices=["local", "production"],
+        help=f"Target environment profile (default from config.json: '{config.active_profile}')"
+    )
+    cli_parser.add_argument(
         "--diff",
         action="store_true",
         help="Only process files modified in the latest git commit (used in CI/CD)"
@@ -68,6 +76,10 @@ def main():
     )
 
     args = cli_parser.parse_args()
+
+    # Determine profile
+    active_profile = config.get_profile(args.env)
+    print(f"[*] Active Environment: '{args.env.upper()}' | Provider: '{active_profile.provider}' | Model: '{active_profile.model}'")
 
     # Determine list of files to process
     target_files = []
@@ -95,7 +107,7 @@ def main():
 
     # Initialize processing engines
     ast_parser = UniversalASTParser()
-    ai_engine = AIDocumentationEngine(config=config.llm)
+    ai_engine = AIDocumentationEngine(profile=active_profile)
     doc_gen = DocumentationGenerator(output_dir=args.output_dir)
 
     catalog: Dict[str, List[str]] = {}

@@ -2,22 +2,24 @@
 analyzer.utils.config_loader
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Loads and validates application settings from `config.json`.
-Eliminates dependency on environment variables (.env / os.getenv).
+Loads and validates multi-environment settings (local vs production) from `config.json`.
+Eliminates dependency on environment variables.
 """
 
 import os
 import json
-from typing import List, Optional
+from typing import List, Optional, Dict
 from pydantic import BaseModel, Field
 
 
-class LLMConfig(BaseModel):
-    """Configuration for LLM API integration."""
-    enabled: bool = Field(False, description="Whether to invoke hosted LLM API")
-    api_key: Optional[str] = Field("", description="API key for OpenAI, Gemini, Groq, or OpenRouter")
-    api_base: str = Field("https://api.openai.com/v1", description="REST endpoint base URL")
-    model: str = Field("gpt-4o-mini", description="Model identifier")
+class ProfileConfig(BaseModel):
+    """Configuration for an individual environment profile (local or production)."""
+    provider: str = Field("gemini", description="Provider identifier (gemini, groq, mistral, claude)")
+    description: Optional[str] = Field(None, description="Human readable description")
+    enabled: bool = Field(False, description="Whether to invoke this LLM API")
+    api_key: Optional[str] = Field("", description="API key for the designated provider")
+    api_base: str = Field("https://generativelanguage.googleapis.com/v1beta/openai/", description="Endpoint base URL")
+    model: str = Field("gemini-1.5-flash", description="Model identifier")
     temperature: float = Field(0.1, description="Sampling temperature")
     timeout_seconds: int = Field(30, description="Network timeout in seconds")
 
@@ -45,10 +47,28 @@ class ScannerConfig(BaseModel):
 
 
 class AppConfig(BaseModel):
-    """Root configuration model representing config.json."""
-    llm: LLMConfig = Field(default_factory=LLMConfig)
+    """Root configuration model representing config.json with multi-env profile support."""
+    active_profile: str = Field("local", description="Current active profile name ('local' or 'production')")
+    profiles: Dict[str, ProfileConfig] = Field(default_factory=dict, description="Configured environment profiles")
     generator: GeneratorConfig = Field(default_factory=GeneratorConfig)
     scanner: ScannerConfig = Field(default_factory=ScannerConfig)
+
+    def get_profile(self, env_override: Optional[str] = None) -> ProfileConfig:
+        """
+        Retrieves the profile for the target environment.
+        
+        Args:
+            env_override: Optional CLI override ('local' or 'production').
+            
+        Returns:
+            ProfileConfig instance for the requested or active environment.
+        """
+        env_name = (env_override or self.active_profile).lower()
+        if env_name in self.profiles:
+            return self.profiles[env_name]
+        
+        # Fallback profile if profile key is missing
+        return ProfileConfig()
 
 
 def load_config(config_path: Optional[str] = None) -> AppConfig:
@@ -64,7 +84,6 @@ def load_config(config_path: Optional[str] = None) -> AppConfig:
         AppConfig instance with validated settings.
     """
     if config_path is None:
-        # Resolve config.json relative to repository root
         root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         config_path = os.path.join(root_dir, "config.json")
 

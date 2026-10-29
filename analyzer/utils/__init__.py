@@ -13,7 +13,7 @@ from analyzer.utils.git_utils import (
 from analyzer.utils.config_loader import (
     load_config,
     AppConfig,
-    LLMConfig,
+    ProfileConfig,
     GeneratorConfig,
     ScannerConfig,
 )
@@ -24,7 +24,7 @@ __all__ = [
     "SUPPORTED_EXTENSIONS",
     "load_config",
     "AppConfig",
-    "LLMConfig",
+    "ProfileConfig",
     "GeneratorConfig",
     "ScannerConfig",
 ]
