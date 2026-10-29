@@ -1,6 +1,6 @@
 # Class: `UniversalASTParser`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/parser.py`](../../analyzer/parser.py#L28-L392) | **Lines**: `28 - 392`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/parser.py`](../../analyzer/parser.py#L32-L734) | **Lines**: `32 - 734`
 
 ---
 
@@ -19,6 +19,9 @@ classDiagram
         +_extract_csharp_method(Node node, bytes source_bytes) MethodMetadata
         +_extract_java_classes(Node root_node, bytes source_bytes, str file_path) List[ClassMetadata]
         +_extract_java_method(Node node, bytes source_bytes) MethodMetadata
+        +_extract_javascript_classes(Node root_node, bytes source_bytes, str file_path, str lang) List[ClassMetadata]
+        +_extract_go_classes(Node root_node, bytes source_bytes, str file_path) List[ClassMetadata]
+        +_extract_rust_classes(Node root_node, bytes source_bytes, str file_path) List[ClassMetadata]
     }
 ```
 
@@ -26,7 +29,7 @@ classDiagram
 
 ## 2. Overview & Purpose
 
-Orchestrates grammar loading and syntax tree traversal across multiple languages.
+Orchestrates grammar loading and syntax tree traversal across multiple languages:
 
 ### Why this class exists (Design Rationale)
 Encapsulates specialized methods and state within a dedicated class unit adhering to single responsibility principles.
@@ -45,6 +48,9 @@ Encapsulates specialized methods and state within a dedicated class unit adherin
 - Provides operation `_extract_csharp_method`.
 - Provides operation `_extract_java_classes`.
 - Provides operation `_extract_java_method`.
+- Provides operation `_extract_javascript_classes`.
+- Provides operation `_extract_go_classes`.
+- Provides operation `_extract_rust_classes`.
 
 ---
 
@@ -52,44 +58,39 @@ Encapsulates specialized methods and state within a dedicated class unit adherin
 
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
-| **`__init__`** | `self: Any` | `Any` | L33-L59 | Initializes language grammars and parser instances for supported languages. |
-| **`detect_language`** | `self: Any`, `file_path: str` | `Optional[str]` | L61-L77 | Maps a file extension to its corresponding parser language key.
-        
-        Args:
-            file_path: Relative or absolute path to the file.
-            
-        Returns:
-            Language string ('python', 'csharp', 'java') or None if unsupported. |
-| **`parse_file`** | `self: Any`, `file_path: str` | `Optional[FileAnalysisResult]` | L79-L117 | Reads a source file, parses its AST, and extracts structured class metadata.
-        
-        Args:
-            file_path: Path to the target source file.
-            
-        Returns:
-            FileAnalysisResult containing discovered classes, or None if unparseable. |
-| **`_get_node_text`** | `self: Any`, `node: Optional[Node]`, `source_bytes: bytes` | `str` | L119-L123 | Helper to extract and decode substring bounded by a Tree-sitter node. |
-| **`_extract_python_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L128-L185 | Traverses Python AST to extract classes, bases, dependencies, and methods. |
-| **`_extract_python_method`** | `self: Any`, `node: Node`, `source_bytes: bytes` | `MethodMetadata` | L187-L226 | Parses a Python function_definition node into structured MethodMetadata. |
-| **`_extract_csharp_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L231-L284 | Traverses C# AST extracting classes, interfaces, base_list, and DI constructors. |
-| **`_extract_csharp_method`** | `self: Any`, `node: Node`, `source_bytes: bytes` | `MethodMetadata` | L286-L311 | Parses a C# method_declaration node into MethodMetadata. |
-| **`_extract_java_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L316-L365 | Traverses Java AST extracting classes, interfaces, superclasses, and methods. |
-| **`_extract_java_method`** | `self: Any`, `node: Node`, `source_bytes: bytes` | `MethodMetadata` | L367-L392 | Parses a Java method_declaration node into MethodMetadata. |
+| **`__init__`** | `self: Any` | `Any` | L38-L96 | Initializes language grammars and parser instances for supported languages. |
+| **`detect_language`** | `self: Any`, `file_path: str` | `Optional[str]` | L98-L116 | Maps a file extension to its corresponding parser language key. |
+| **`parse_file`** | `self: Any`, `file_path: str` | `Optional[FileAnalysisResult]` | L118-L155 | Reads a source file, parses its AST, and extracts structured class metadata. |
+| **`_get_node_text`** | `self: Any`, `node: Optional[Node]`, `source_bytes: bytes` | `str` | L157-L161 | Helper to extract and decode substring bounded by a Tree-sitter node. |
+| **`_extract_python_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L166-L223 | Traverses Python AST to extract classes, bases, dependencies, and methods. |
+| **`_extract_python_method`** | `self: Any`, `node: Node`, `source_bytes: bytes` | `MethodMetadata` | L225-L264 | Parses a Python function_definition node into structured MethodMetadata. |
+| **`_extract_csharp_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L269-L322 | Traverses C# AST extracting classes, interfaces, base_list, and DI constructors. |
+| **`_extract_csharp_method`** | `self: Any`, `node: Node`, `source_bytes: bytes` | `MethodMetadata` | L324-L349 | Parses a C# method_declaration node into MethodMetadata. |
+| **`_extract_java_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L354-L403 | Traverses Java AST extracting classes, interfaces, superclasses, and methods. |
+| **`_extract_java_method`** | `self: Any`, `node: Node`, `source_bytes: bytes` | `MethodMetadata` | L405-L430 | Parses a Java method_declaration node into MethodMetadata. |
+| **`_extract_javascript_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str`, `lang: str` | `List[ClassMetadata]` | L435-L574 | Traverses JS/TS/JSX/TSX AST to extract ES6 classes, TypeScript interfaces,
+        and React functional/arrow components. |
+| **`_extract_go_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L579-L656 | Traverses Go AST to extract structs and their associated receiver methods. |
+| **`_extract_rust_classes`** | `self: Any`, `root_node: Node`, `source_bytes: bytes`, `file_path: str` | `List[ClassMetadata]` | L661-L734 | Traverses Rust AST to extract struct items and associated impl blocks. |
 
 ---
 
 ## 6. Verifiable Code Citations
 
-- Lines 28-392: Declares `UniversalASTParser` in `analyzer/parser.py`.
-- Lines 33-59: Constructor initialization.
-- Lines 61-77: Defines method `detect_language`.
-- Lines 79-117: Defines method `parse_file`.
-- Lines 119-123: Defines method `_get_node_text`.
-- Lines 128-185: Defines method `_extract_python_classes`.
-- Lines 187-226: Defines method `_extract_python_method`.
-- Lines 231-284: Defines method `_extract_csharp_classes`.
-- Lines 286-311: Defines method `_extract_csharp_method`.
-- Lines 316-365: Defines method `_extract_java_classes`.
-- Lines 367-392: Defines method `_extract_java_method`.
+- Lines 32-734: Declares `UniversalASTParser` in `analyzer/parser.py`.
+- Lines 38-96: Constructor initialization.
+- Lines 98-116: Defines method `detect_language`.
+- Lines 118-155: Defines method `parse_file`.
+- Lines 157-161: Defines method `_get_node_text`.
+- Lines 166-223: Defines method `_extract_python_classes`.
+- Lines 225-264: Defines method `_extract_python_method`.
+- Lines 269-322: Defines method `_extract_csharp_classes`.
+- Lines 324-349: Defines method `_extract_csharp_method`.
+- Lines 354-403: Defines method `_extract_java_classes`.
+- Lines 405-430: Defines method `_extract_java_method`.
+- Lines 435-574: Defines method `_extract_javascript_classes`.
+- Lines 579-656: Defines method `_extract_go_classes`.
+- Lines 661-734: Defines method `_extract_rust_classes`.
 
 ---
 
