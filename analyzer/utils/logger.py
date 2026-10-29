@@ -10,6 +10,7 @@ Enterprise Multi-Channel Logger for Code Documentation Pipeline:
 """
 
 import os
+import re
 import logging
 from datetime import datetime
 from typing import Optional
@@ -18,6 +19,7 @@ from typing import Optional
 class PipelineLogger:
     """
     Manages three distinct log streams directing output to their respective directories.
+    Automatically maintains only the last 1 hour of logs, purging older log files.
     """
 
     def __init__(self, base_log_dir: str = "logs"):
@@ -41,6 +43,40 @@ class PipelineLogger:
         self.fn_logger = self._setup_logger("pipeline_fn", self.fn_file, logging.INFO)
         self.err_logger = self._setup_logger("pipeline_err", self.err_file, logging.ERROR)
         self.quota_logger = self._setup_logger("pipeline_quota", self.quota_file, logging.WARNING)
+
+        # Automatically purge logs older than 1 hour (3600 seconds)
+        self.cleanup_old_logs(max_age_seconds=3600)
+
+    def cleanup_old_logs(self, max_age_seconds: int = 3600):
+        """
+        Maintains only the logs generated within the last 1 hour (max_age_seconds).
+        Automatically removes older log files across err_log, fn_log, and quota_complete_log.
+        """
+        now = datetime.now()
+        for log_dir in [self.err_dir, self.fn_dir, self.quota_dir]:
+            if not os.path.isdir(log_dir):
+                continue
+            for fname in os.listdir(log_dir):
+                if not fname.endswith(".log"):
+                    continue
+                file_path = os.path.join(log_dir, fname)
+                # Keep active files of current session
+                if file_path in (self.err_file, self.fn_file, self.quota_file):
+                    continue
+
+                try:
+                    # 1. Attempt to parse timestamp from filename (e.g. error_2026-10-29_14-05-47.log)
+                    match = re.search(r"(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})", fname)
+                    if match:
+                        file_dt = datetime.strptime(match.group(1), "%Y-%m-%d_%H-%M-%S")
+                        age_sec = (now - file_dt).total_seconds()
+                    else:
+                        age_sec = now.timestamp() - os.path.getmtime(file_path)
+
+                    if age_sec > max_age_seconds:
+                        os.remove(file_path)
+                except Exception:
+                    pass
 
     def _setup_logger(self, name: str, log_file: str, level: int) -> logging.Logger:
         logger = logging.getLogger(name)
