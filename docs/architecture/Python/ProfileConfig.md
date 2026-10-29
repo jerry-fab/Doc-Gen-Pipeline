@@ -1,6 +1,6 @@
 # Class: `ProfileConfig`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L19-L28) | **Lines**: `19 - 28`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/utils/config_loader.py`](../../analyzer/utils/config_loader.py#L19-L28) | **Lines**: `19 - 28`
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 19-28: Declares `ProfileConfig` in `analyzer\utils\config_loader.py`.
+- Lines 19-28: Declares `ProfileConfig` in `analyzer/utils/config_loader.py`.
 
 ---
 

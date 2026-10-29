@@ -1,6 +1,6 @@
 # Class: `AppConfig`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer\utils\config_loader.py`](../../analyzer\utils\config_loader.py#L62-L107) | **Lines**: `62 - 107`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/utils/config_loader.py`](../../analyzer/utils/config_loader.py#L62-L107) | **Lines**: `62 - 107`
 
 ---
 
@@ -44,7 +44,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 62-107: Declares `AppConfig` in `analyzer\utils\config_loader.py`.
+- Lines 62-107: Declares `AppConfig` in `analyzer/utils/config_loader.py`.
 - Lines 70-107: Defines method `get_active_profile`.
 
 ---
