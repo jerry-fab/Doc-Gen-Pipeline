@@ -1,6 +1,6 @@
 # Class: `NotificationService`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`src\notification_service.py`](../../src\notification_service.py#L11-L56) | **Lines**: `11 - 56`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`src/notification_service.py`](../../src/notification_service.py#L11-L56) | **Lines**: `11 - 56`
 
 ---
 
@@ -57,7 +57,7 @@ Employs Dependency Injection via constructor parameters to decouple implementati
 
 ## 6. Verifiable Code Citations
 
-- Lines 11-56: Declares `NotificationService` in `src\notification_service.py`.
+- Lines 11-56: Declares `NotificationService` in `src/notification_service.py`.
 - Lines 16-23: Constructor initialization.
 - Lines 25-34: Defines method `send_email`.
 - Lines 36-45: Defines method `send_sms`.
