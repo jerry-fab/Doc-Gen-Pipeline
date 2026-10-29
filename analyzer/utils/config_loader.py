@@ -38,7 +38,10 @@ class GeneratorConfig(BaseModel):
 class ScannerConfig(BaseModel):
     """Configuration for repository file discovery."""
     supported_extensions: List[str] = Field(
-        default_factory=lambda: [".py", ".cs", ".java"],
+        default_factory=lambda: [
+            ".py", ".cs", ".java", ".js", ".jsx",
+            ".ts", ".tsx", ".mjs", ".cjs", ".go", ".rs"
+        ],
         description="Source code extensions to scan"
     )
     ignored_directories: List[str] = Field(

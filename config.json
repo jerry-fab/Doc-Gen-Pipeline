@@ -31,7 +31,15 @@
     "supported_extensions": [
       ".py",
       ".cs",
-      ".java"
+      ".java",
+      ".js",
+      ".jsx",
+      ".ts",
+      ".tsx",
+      ".mjs",
+      ".cjs",
+      ".go",
+      ".rs"
     ],
     "ignored_directories": [
       ".git",
