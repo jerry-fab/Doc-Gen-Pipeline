@@ -44,7 +44,6 @@ runs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-        cache: 'pip'
 
     # 2. Install dependencies from this action's repository
     - name: Install Action Dependencies
