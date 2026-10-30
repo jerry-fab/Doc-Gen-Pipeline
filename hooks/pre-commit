@@ -2,43 +2,34 @@
 # ==============================================================================
 # Git Pre-Commit Hook for Automated Architecture Documentation
 # ==============================================================================
+#
+# ==============================================================================
+# GLOBAL CONFIGURATION (Configure Everything Here!)
+# ==============================================================================
+# 1. Centralized Documentation Server URL (Docker container, internal VM, or Cloud)
+SERVER_URL="${DOC_GEN_SERVER_URL:-http://localhost:8000}"
 
-# Locate Python executable reliably on Windows / Linux / macOS
-if command -v py >/dev/null 2>&1; then
-    PYTHON_CMD="py"
-elif command -v python3 >/dev/null 2>&1 && python3 -c "import sys" >/dev/null 2>&1; then
-    PYTHON_CMD="python3"
-elif command -v python >/dev/null 2>&1 && python -c "import sys" >/dev/null 2>&1; then
-    PYTHON_CMD="python"
-elif [ -f "C:/Users/JERRYFELIX.C/AppData/Local/Programs/Python/Python313/python.exe" ]; then
-    PYTHON_CMD="C:/Users/JERRYFELIX.C/AppData/Local/Programs/Python/Python313/python.exe"
-else
-    PYTHON_CMD="python"
-fi
+# 2. Connection Timeout in seconds (Fail-fast if server is offline)
+SERVER_TIMEOUT_SECONDS=2
 
-# Locate the Doc-Gen-Pipeline path
-PIPELINE_DIR="${DOC_GEN_PIPELINE_DIR}"
+# 3. Target Documentation Output Directory inside your repository
+OUTPUT_DOCS_DIR="docs"
 
-if [ -z "$PIPELINE_DIR" ] || [ ! -f "$PIPELINE_DIR/analyzer/main.py" ]; then
-    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-    if [ -f "$SCRIPT_DIR/../../Github-Pipeline/analyzer/main.py" ]; then
-        PIPELINE_DIR="$(cd "$SCRIPT_DIR/../../Github-Pipeline" && pwd)"
-    elif [ -f "D:/Project-Folders/LDL/LDL-POC/Github-Pipeline/analyzer/main.py" ]; then
-        PIPELINE_DIR="D:/Project-Folders/LDL/LDL-POC/Github-Pipeline"
-    fi
-fi
+# 4. Supported file extensions for AST analysis
+SUPPORTED_EXTENSIONS_REGEX='\.(cs|py|java|js|jsx|ts|tsx|go|rs)$'
 
-if [ -z "$PIPELINE_DIR" ] || [ ! -f "$PIPELINE_DIR/analyzer/main.py" ]; then
-    echo "[Doc-Gen Hook] Notice: Doc-Gen-Pipeline not detected. Skipping auto-docs."
-    exit 0
-fi
+# 5. Local Fallback Pipeline Directory (Used ONLY if Central Server is offline)
+FALLBACK_PIPELINE_DIR="${DOC_GEN_PIPELINE_DIR:-D:/Project-Folders/LDL/LDL-POC/Github-Pipeline}"
 
-MAIN_PY="$PIPELINE_DIR/analyzer/main.py"
+# ==============================================================================
+# END OF CONFIGURATION (Core execution logic below - do not modify)
+# ==============================================================================
 
-# Quick check: are any supported source files (.cs, .py, .java, etc.) staged?
-STAGED_FILES=$(git diff --cached --name-only | grep -E '\.(cs|py|java|js|ts|go|rs)$')
+# Check for staged supported code files in the git index
+STAGED_FILES=$(git diff --cached --name-only | grep -E "$SUPPORTED_EXTENSIONS_REGEX")
 
 if [ -z "$STAGED_FILES" ]; then
+    # No relevant code files staged; proceed with normal commit
     exit 0
 fi
 
@@ -46,20 +37,105 @@ echo ""
 echo "============================================================"
 echo "[Doc-Gen Hook] Detected staged code changes:"
 echo "$STAGED_FILES"
-echo "[Doc-Gen Hook] Generating class architecture documentation..."
-echo "============================================================\n"
 
-# Run the analyzer in staged mode
-"$PYTHON_CMD" "$MAIN_PY" --staged --output-dir docs
-STATUS=$?
-
-if [ $STATUS -ne 0 ]; then
-    echo "[Doc-Gen Hook] Warning: Documentation generator exited with code $STATUS."
+# ------------------------------------------------------------------------------
+# Strategy 1: Check if Centralized Docker / REST Server is Online
+# ------------------------------------------------------------------------------
+SERVER_ONLINE=0
+if curl -s --connect-timeout "$SERVER_TIMEOUT_SECONDS" "$SERVER_URL/" >/dev/null 2>&1; then
+    SERVER_ONLINE=1
 fi
 
-# If documentation files were created or modified in docs/, stage them now
-if [ -d "docs" ]; then
-    git add docs/
+if [ $SERVER_ONLINE -eq 1 ]; then
+    echo "[Doc-Gen Hook] Using Centralized Documentation Server ($SERVER_URL)..."
+    echo "============================================================"
+
+    # Prepare JSON payload in temporary file
+    TEMP_PAYLOAD=$(mktemp 2>/dev/null || echo "tmp_doc_payload.json")
+
+    python -c "
+import sys, json, os
+
+files = []
+staged = [f.strip() for f in '''$STAGED_FILES'''.splitlines() if f.strip()]
+for f in staged:
+    if os.path.exists(f):
+        try:
+            with open(f, 'r', encoding='utf-8', errors='replace') as fp:
+                files.append({'file_path': f, 'content': fp.read()})
+        except Exception:
+            pass
+
+payload = {
+    'repository_name': os.path.basename(os.getcwd()),
+    'branch': 'master',
+    'files': files
+}
+with open('$TEMP_PAYLOAD', 'w', encoding='utf-8') as out:
+    json.dump(payload, out)
+"
+
+    # Send request to centralized API
+    RESPONSE=$(curl -s -X POST "$SERVER_URL/api/v1/generate-docs" \
+        -H "Content-Type: application/json" \
+        --data-binary @"$TEMP_PAYLOAD")
+
+    rm -f "$TEMP_PAYLOAD"
+
+    # Parse JSON response and write docs to disk
+    python -c "
+import sys, json, os
+
+try:
+    data = json.loads('''$RESPONSE''')
+    if data.get('status') == 'success' and data.get('documents'):
+        for doc in data['documents']:
+            file_path = doc['file_path']
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(doc['content'])
+            print(f'  -> [Central API] Documented: {doc[\"class_name\"]} ({doc[\"language\"]})')
+            
+        if data.get('catalog_markdown'):
+            readme_path = os.path.join('$OUTPUT_DOCS_DIR', 'README.md')
+            os.makedirs('$OUTPUT_DOCS_DIR', exist_ok=True)
+            with open(readme_path, 'w', encoding='utf-8') as f:
+                f.write(data['catalog_markdown'])
+except Exception:
+    pass
+"
+
+# ------------------------------------------------------------------------------
+# Strategy 2: Local Fallback Engine if Server is Offline
+# ------------------------------------------------------------------------------
+else
+    echo "[Doc-Gen Hook] Server ($SERVER_URL) offline. Falling back to local engine..."
+    echo "============================================================"
+
+    if command -v py >/dev/null 2>&1; then
+        PYTHON_CMD="py"
+    elif command -v python3 >/dev/null 2>&1; then
+        PYTHON_CMD="python3"
+    else
+        PYTHON_CMD="python"
+    fi
+
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    PIPELINE_DIR="$FALLBACK_PIPELINE_DIR"
+    if [ ! -f "$PIPELINE_DIR/analyzer/main.py" ]; then
+        if [ -f "$SCRIPT_DIR/../../Github-Pipeline/analyzer/main.py" ]; then
+            PIPELINE_DIR="$(cd "$SCRIPT_DIR/../../Github-Pipeline" && pwd)"
+        fi
+    fi
+
+    if [ -f "$PIPELINE_DIR/analyzer/main.py" ]; then
+        "$PYTHON_CMD" "$PIPELINE_DIR/analyzer/main.py" --staged --output-dir "$OUTPUT_DOCS_DIR"
+    fi
+fi
+
+# Stage generated/updated documentation into current commit
+if [ -d "$OUTPUT_DOCS_DIR" ]; then
+    git add "$OUTPUT_DOCS_DIR/"
     echo "[Doc-Gen Hook] Class documentation staged into current commit."
 fi
 

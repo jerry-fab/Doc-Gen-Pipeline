@@ -140,15 +140,22 @@ class UniversalASTParser:
         """
         Reads a source file, parses its AST, and extracts structured class metadata.
         """
-        lang = self.detect_language(file_path)
-        if not lang or lang not in self.parsers:
-            return None
-
         try:
             with open(file_path, "r", encoding="utf-8", errors="replace") as f:
                 source_code = f.read()
         except Exception as exc:
             print(f"[Error] Failed to read source file '{file_path}': {exc}")
+            return None
+
+        return self.parse_code(file_path, source_code)
+
+    def parse_code(self, file_path: str, source_code: str) -> Optional[FileAnalysisResult]:
+        """
+        Parses source code string, builds AST, and extracts structured class metadata.
+        Used by both CLI and Centralized REST API server.
+        """
+        lang = self.detect_language(file_path)
+        if not lang or lang not in self.parsers:
             return None
 
         source_bytes = source_code.encode("utf-8")
