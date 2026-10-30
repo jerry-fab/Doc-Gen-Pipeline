@@ -1,6 +1,6 @@
 # Class: `ParameterMetadata`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer\models\schemas.py`](../../analyzer\models\schemas.py#L13-L17) | **Lines**: `13 - 17`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/models/schemas.py`](../../analyzer/models/schemas.py#L13-L17) | **Lines**: `13 - 17`
 
 ---
 
@@ -38,7 +38,7 @@ Implements inheritance/interface contract from `BaseModel` ensuring substitutabi
 
 ## 6. Verifiable Code Citations
 
-- Lines 13-17: Declares `ParameterMetadata` in `analyzer\models\schemas.py`.
+- Lines 13-17: Declares `ParameterMetadata` in `analyzer/models/schemas.py`.
 
 ---
 

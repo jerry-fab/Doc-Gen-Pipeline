@@ -1,6 +1,6 @@
 # Class: `UniversalASTParser`
 
-> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer\parser.py`](../../analyzer\parser.py#L48-L755) | **Lines**: `48 - 755`
+> **Language**: `PYTHON` | **Engine**: `GROUNDED_HEURISTIC` | **Source**: [`analyzer/parser.py`](../../analyzer/parser.py#L48-L755) | **Lines**: `48 - 755`
 
 ---
 
@@ -77,7 +77,7 @@ Encapsulates specialized methods and state within a dedicated class unit adherin
 
 ## 6. Verifiable Code Citations
 
-- Lines 48-755: Declares `UniversalASTParser` in `analyzer\parser.py`.
+- Lines 48-755: Declares `UniversalASTParser` in `analyzer/parser.py`.
 - Lines 54-117: Constructor initialization.
 - Lines 119-137: Defines method `detect_language`.
 - Lines 139-176: Defines method `parse_file`.
