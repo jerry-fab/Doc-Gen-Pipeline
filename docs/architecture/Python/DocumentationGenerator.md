@@ -6,19 +6,18 @@
 
 ## 1. Overview & Architectural Purpose
 
-Renders AST metadata and structural explanations into Markdown documentation files featuring embedded Mermaid diagrams and updates a master documentation catalog index.
+Renders structured AST metadata and architectural explanations into Markdown files featuring formatted tables and Mermaid class diagrams, while maintaining a master documentation catalog index.
 
 ### Design Rationale
-INFERRED: Encapsulates documentation template rendering and file formatting logic away from metadata extraction engines, providing a unified output interface for architectural documentation generation.
+Separates visual documentation rendering logic from AST parsing and AI heuristic analysis. Inferred rationale includes providing standardized architectural documentation formats and visual diagrams across multiple programming languages.
 
 ---
 
 ## 2. Key Responsibilities & Capabilities
 
-- Initializes output directories on the file system for architecture documentation.
-- Generates detailed Markdown documentation files per class including metadata tables, citations, limitations, and Mermaid diagrams.
-- Constructs Mermaid class diagrams reflecting fields, methods, inheritance, and dependency relationships.
-- Updates a root README.md file with an alphabetized index catalog of all generated class documentation relative to the output directory.
+- Creates language-specific subdirectories and writes structured Markdown files for individual classes (Lines 33-100).
+- Generates visual Mermaid classDiagram string representations depicting fields, methods, inheritance, and dependency relationships (Lines 102-132).
+- Constructs and updates a central README.md file cataloging generated class documentation categorized by language (Lines 134-165).
 
 ---
 
@@ -26,35 +25,34 @@ INFERRED: Encapsulates documentation template rendering and file formatting logi
 
 | Method Name | Parameters | Return Type | Lines | Explanation |
 | :--- | :--- | :--- | :--- | :--- |
-| **`__init__`** | `self: Any`, `output_dir: str` | `Any` | L24-L33 | Sets output directory paths and ensures the 'architecture' target directory exists on disk. |
-| **`generate_class_doc`** | `self: Any`, `meta: ClassMetadata`, `explanation: ClassExplanation` | `str` | L35-L102 | Assembles structured Markdown content combining metadata and explanation data, writes the file to a language-specific subdirectory, and returns the file path. |
-| **`_build_mermaid_diagram`** | `self: Any`, `meta: ClassMetadata` | `str` | L104-L134 | Builds and returns a Mermaid `classDiagram` formatted string representing class fields, methods, inheritance, and non-primitive dependencies. |
-| **`update_index`** | `self: Any`, `catalog: Dict[str, List[str]]` | `Any` | L136-L166 | Generates and writes a master README.md index catalog containing relative Markdown links to all generated documentation, categorized by language. |
+| **`__init__`** | `self: Any`, `output_dir: str` | `Any` | L24-L33 | Initializes output path variables and creates the 'architecture' target subdirectory on disk if it does not exist (Lines 25-31). |
+| **`generate_class_doc`** | `self: Any`, `meta: ClassMetadata`, `explanation: ClassExplanation` | `str` | L35-L102 | Formats ClassMetadata and ClassExplanation attributes into a Markdown file, builds its Mermaid diagram, writes it to disk under a language-specific folder, and returns the file path (Lines 33-100). |
+| **`_build_mermaid_diagram`** | `self: Any`, `meta: ClassMetadata` | `str` | L104-L134 | Parses fields (up to 5), method signatures, inherited base classes, and non-primitive injected dependencies from ClassMetadata to produce a Mermaid classDiagram definition string (Lines 102-132). |
+| **`update_index`** | `self: Any`, `catalog: Dict[str, List[str]]` | `Any` | L136-L166 | Creates or overwrites the root README.md index with sorted tables linking to generated class documentation grouped by programming language (Lines 134-165). |
 
 ---
 
 ## 4. Injected Dependencies & Collaborators
 
-- **`output_dir: str`**: Directory path string specifying where generated architecture documentation files and the README index should be written.
+- **`output_dir`**: Base filesystem directory string where documentation folders and the root README index are generated (Default: 'docs').
 
 ---
 
 ## 5. Verifiable Code Citations
 
-- Lines 30-32: Initializes directory properties (`output_dir`, `arch_dir`) and invokes `os.makedirs`.
-- Lines 45-47: Builds subdirectories based on `meta.language.capitalize()` and target Markdown file paths.
-- Lines 50-94: Invokes `_build_mermaid_diagram`, formats Markdown strings, and writes the output file with `utf-8` encoding.
-- Lines 103-130: Formats string lines representing Mermaid `classDiagram` elements including fields, methods, inheritance (`<|--`), and dependencies (`..>`).
-- Lines 139-164: Formats `README.md` catalog using `os.path.relpath` and writes it to disk.
+- Lines 30-31: Uses os.makedirs to ensure the 'architecture' output directory exists.
+- Lines 38-40: Constructs language-specific target paths using meta.language.capitalize() and meta.name.
+- Line 110: Slices meta.fields[:5] when generating field definitions in Mermaid syntax.
+- Lines 125-129: Filters out primitive types ('int', 'str', 'string', 'bool', 'double', 'float', 'Any') when building dependency arrows.
+- Lines 97-98 & 163-164: Performs direct UTF-8 file write operations using open().
 
 ---
 
 ## 6. Known Architectural Boundaries & Limitations
 
-- ⚠️ Truncates class fields to a maximum of 5 items when building Mermaid diagrams (Line 108).
-- ⚠️ Dependency type parsing in `_build_mermaid_diagram` uses string splitting (Line 124), which may fail or improperly parse complex or generic nested types.
-- ⚠️ Lacks explicit exception handling around file system writes (`open()`, `os.makedirs()`) on lines 32, 46, 93, and 163.
-- ⚠️ Cross-file inspection is required to determine the structural implementation of `ClassMetadata` and `ClassExplanation` types.
+- ⚠️ Diagram field generation hard-limits displayed fields to 5 without adding an indicator for truncated fields (Line 110).
+- ⚠️ No exception handling around file I/O operations (Lines 97-98, 163-164); permission errors or invalid paths will fail unhandled.
+- ⚠️ Cross-file inspection required to verify the schema and attribute types of ClassMetadata and ClassExplanation objects.
 
 ---
 
