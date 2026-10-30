@@ -2,35 +2,25 @@
 # ==============================================================================
 # Git Pre-Commit Hook for Automated Architecture Documentation
 # ==============================================================================
-# This hook runs locally on the developer machine during `git commit`.
-# It inspects staged code files (.cs, .py, .java), generates updated
-# class architecture documentation into `docs/`, and stages the docs
-# so they are bundled into the EXACT same commit.
-#
-# Server Impact: ZERO. Works on any Git server (Gogs, GitLab, Bitbucket, GitHub).
-# ==============================================================================
 
-# Locate Python executable
-if command -v python3 >/dev/null 2>&1; then
-    PYTHON_CMD="python3"
-elif command -v python >/dev/null 2>&1; then
-    PYTHON_CMD="python"
-elif command -v py >/dev/null 2>&1; then
+# Locate Python executable reliably on Windows / Linux / macOS
+if command -v py >/dev/null 2>&1; then
     PYTHON_CMD="py"
+elif command -v python3 >/dev/null 2>&1 && python3 -c "import sys" >/dev/null 2>&1; then
+    PYTHON_CMD="python3"
+elif command -v python >/dev/null 2>&1 && python -c "import sys" >/dev/null 2>&1; then
+    PYTHON_CMD="python"
+elif [ -f "C:/Users/JERRYFELIX.C/AppData/Local/Programs/Python/Python313/python.exe" ]; then
+    PYTHON_CMD="C:/Users/JERRYFELIX.C/AppData/Local/Programs/Python/Python313/python.exe"
 else
-    echo "[Doc-Gen Hook] Warning: Python not found in PATH. Skipping doc generation."
-    exit 0
+    PYTHON_CMD="python"
 fi
 
 # Locate the Doc-Gen-Pipeline path
-# 1. Check if DOC_GEN_PIPELINE_DIR environment variable is set
-# 2. Check if sibling folder "Github-Pipeline" exists
-# 3. Check hardcoded fallback path
 PIPELINE_DIR="${DOC_GEN_PIPELINE_DIR}"
 
 if [ -z "$PIPELINE_DIR" ] || [ ! -f "$PIPELINE_DIR/analyzer/main.py" ]; then
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-    # Try sibling directory
     if [ -f "$SCRIPT_DIR/../../Github-Pipeline/analyzer/main.py" ]; then
         PIPELINE_DIR="$(cd "$SCRIPT_DIR/../../Github-Pipeline" && pwd)"
     elif [ -f "D:/Project-Folders/LDL/LDL-POC/Github-Pipeline/analyzer/main.py" ]; then
@@ -45,11 +35,10 @@ fi
 
 MAIN_PY="$PIPELINE_DIR/analyzer/main.py"
 
-# Quick check: are any supported source files (.cs, .py, .java) staged?
-STAGED_FILES=$(git diff --cached --name-only | grep -E '\.(cs|py|java)$')
+# Quick check: are any supported source files (.cs, .py, .java, etc.) staged?
+STAGED_FILES=$(git diff --cached --name-only | grep -E '\.(cs|py|java|js|ts|go|rs)$')
 
 if [ -z "$STAGED_FILES" ]; then
-    # No relevant code files staged; proceed with commit immediately
     exit 0
 fi
 
@@ -58,15 +47,14 @@ echo "============================================================"
 echo "[Doc-Gen Hook] Detected staged code changes:"
 echo "$STAGED_FILES"
 echo "[Doc-Gen Hook] Generating class architecture documentation..."
-echo "============================================================"
+echo "============================================================\n"
 
 # Run the analyzer in staged mode
 "$PYTHON_CMD" "$MAIN_PY" --staged --output-dir docs
-
 STATUS=$?
+
 if [ $STATUS -ne 0 ]; then
     echo "[Doc-Gen Hook] Warning: Documentation generator exited with code $STATUS."
-    # We do not block the commit if doc generation has an issue
 fi
 
 # If documentation files were created or modified in docs/, stage them now
